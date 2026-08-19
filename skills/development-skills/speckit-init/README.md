@@ -27,21 +27,25 @@ setup rather than a generic template.
 
 ## Installation
 
-Copy `SKILL.md` to your agent's skill directory:
+Install the complete directory so the skill can retain any future supporting
+resources. For Codex, the default skill directory is `~/.codex/skills`:
 
 ```bash
-# OpenCode
-cp SKILL.md ~/.config/opencode/skills/speckit-init/SKILL.md
-
-# Codex / agents using ~/.agents/skills/
-cp SKILL.md ~/.agents/skills/speckit-init/SKILL.md
+mkdir -p ~/.codex/skills
+cp -R skills/development-skills/speckit-init ~/.codex/skills/speckit-init
 ```
 
-Or symlink it:
+During local development, use a symlink instead:
 
 ```bash
-ln -s "$(pwd)/SKILL.md" ~/.config/opencode/skills/speckit-init/SKILL.md
+mkdir -p ~/.codex/skills
+ln -s "$(pwd)/skills/development-skills/speckit-init" \
+  ~/.codex/skills/speckit-init
 ```
+
+For OpenCode, Claude, or another agent, install the directory in that agent's
+documented skills location. The Spec Kit command syntax is integration-specific;
+the skill detects and documents the syntax available in the target repository.
 
 ## Usage
 
@@ -74,7 +78,7 @@ Write a constitution for this project based on the existing docs
 ## Structure
 
 ```
-skills/speckit-init/
+skills/development-skills/speckit-init/
 ├── SKILL.md      # The skill definition (follow this)
 └── README.md     # You are here
 ```
@@ -92,9 +96,9 @@ skills/speckit-init/
 ## Requirements
 
 - [Spec Kit CLI](https://github.com/github/spec-kit) (`uv tool install specify-cli`)
-- A git repository with a `main` or `master` branch
+- A repository the agent can inspect
 - An AI agent that supports skills (OpenCode, Codex, Claude, etc.)
 
 ## License
 
-See the [LICENSE](../LICENSE) file in the repository root.
+See the [MIT license](https://github.com/administrakt0r/pro-skills-repo-administraktor/blob/main/LICENSE).

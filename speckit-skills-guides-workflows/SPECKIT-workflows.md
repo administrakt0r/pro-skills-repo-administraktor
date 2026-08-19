@@ -1,10 +1,28 @@
-# 💫 Spec Kit — Framework-Agnostic Pipelines & Workflows
+# Spec Kit — Reusable SDD Workflow Catalog
 
 > **Reusable public SDD workflow catalog** · Framework-, language-, runtime-, package-manager-, hosting-, database-, and AI-agent-agnostic
 >
 > **Rule:** Always inspect the target repository first. Never copy stack-specific paths, scripts, architecture, or deployment assumptions from this document.
 >
 > `/speckit.*` below is **logical Spec Kit command notation**. The installed agent integration determines the exact invocation surface.
+
+## How to use this catalog
+
+This is a reusable reference, not a project template. When creating a
+project's `SPECKITINIT.md`, retain the core operating model and curate only
+the command reference, pipelines, verification, and maintenance material that
+the repository actually needs. Replace generic placeholders with verified
+repository evidence; omit inapplicable sections rather than marking every
+possibility as required.
+
+Before executing a CLI command, use the installed CLI's `--help` and status
+output to confirm its spelling, flags, and support. Examples in the CLI and
+maintenance sections describe the intended operation, not a compatibility
+guarantee for every Spec Kit version.
+
+The catalog does not grant permission to mutate a repository, production
+system, credentials, data, infrastructure, or external issue tracker. Keep
+those actions behind the target project's normal approval process.
 
 ---
 
