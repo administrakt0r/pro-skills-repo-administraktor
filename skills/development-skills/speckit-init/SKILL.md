@@ -3,8 +3,9 @@ name: speckit-init
 description: >
   Use when the user asks to install, initialize, integrate, upgrade, or
   document GitHub Spec Kit. Creates a repository-specific constitution and
-  SPECKITINIT.md using the public workflow catalog. Do NOT use to implement
-  application features; use the installed Spec Kit implementation command.
+  SPECKITINIT.md with complete copy-paste workflows using the public workflow
+  catalog. Do NOT use to implement application features; use the installed
+  Spec Kit implementation command.
 ---
 
 # Spec Kit Initialization and Workflow Authoring
@@ -63,7 +64,54 @@ prompt, maintenance notes, ownership table, operating rules, and a verification
 matrix. Do not duplicate the entire public catalog unless the repository has a
 demonstrated need for every section.
 
-## 4. Constitution and maintenance
+## 4. Require complete copy-paste command packs
+
+Whenever creating or materially revising `SPECKITINIT.md`, include all four
+command packs below unless the user explicitly asks to omit one:
+
+1. governance or constitution creation/amendment;
+2. general optimization covering measured performance, reliability,
+   maintainability, and relevant UX improvements;
+3. SEO, GEO, and AEO discoverability; and
+4. bug or problem diagnosis, root-cause repair, and regression prevention.
+
+Use the invocation syntax verified from the installed integration. For every
+implementation workflow, provide the full ordered sequence exposed by that
+integration corresponding to specify, optional-but-present clarify, plan,
+checklist, tasks, analyze, implement, and converge. Put every invocation in its
+own copyable code block with a complete repository-specific prompt, then add a
+separate terminal block containing the repository's verified completion gates.
+Tell the operator to paste one block at a time and wait for completion because
+later commands consume artifacts produced by earlier commands.
+
+Make the optimization pack ready to paste without a target placeholder: it
+must inspect evidence, establish a reproducible baseline, select a bounded
+coherent batch, define measurable success and rollback signals, and reject
+unsupported optimization claims or unrelated rewrites. Make the SEO/GEO/AEO
+pack ready to paste and cover only discoverability surfaces supported by the
+repository; require observable outcomes, truthful visible-content/schema
+alignment, accessibility, and no promises of rankings, indexing, traffic,
+snippets, or AI citations. The bug pack may contain one clearly identified
+problem-report placeholder because the operator must supply the incident; it
+must require reproduction evidence, a root-cause-driven minimal fix, focused
+regression coverage, and preservation of unrelated behavior.
+
+The governance pack is a complete constitution command plus safe inspection
+and validation commands, not an implementation pipeline. Derive its durable
+rules from verified architecture, data/auth, security/privacy, quality,
+deployment, and accessibility evidence. State that it should run only when
+governance is missing or materially changed.
+
+Keep prompts specific enough to run without inventing missing inputs. Include
+scope, non-goals, constraints, acceptance evidence, rollback or stopping
+conditions, authorization boundaries, and honest handling of unknowns. Avoid
+generic `<scope>` or `<target>` placeholders except the single bug-report input
+or another input that is genuinely impossible to infer. Do not copy framework,
+path, service, or shell-command assumptions from the public catalog; substitute
+only verified local facts. Preserve direct user instructions when they request
+a different set or shape of workflows.
+
+## 5. Constitution and maintenance
 
 Derive constitution rules only from verified repository evidence. A first-run
 prompt must cover actual architectural boundaries, data/auth contracts,
@@ -77,11 +125,13 @@ updates but must not silently upgrade the CLI, rewrite project files, change
 dependencies, run migrations, deploy, or expose secrets. For a
 documentation-only request, document the manual check instead.
 
-## 5. Completion standard
+## 6. Completion standard
 
 Before reporting completion, confirm that generated commands, paths, and
 frontmatter match the installed integration; validate shell commands using help
-or a safe dry run; check local links and placeholders; and inspect the final
-diff. Report skipped checks, unknowns, warnings, and residual risk. Never claim
-that Spec Kit is installed, upgraded, or integrated without filesystem and CLI
-evidence.
+or a safe dry run; check local links, balanced code fences, workflow command
+order, and placeholder counts; and inspect the final diff. Confirm that all
+four required command packs and their repository-specific verification blocks
+are present. Report skipped checks, unknowns, warnings, and residual risk.
+Never claim that Spec Kit is installed, upgraded, or integrated without
+filesystem and CLI evidence.
