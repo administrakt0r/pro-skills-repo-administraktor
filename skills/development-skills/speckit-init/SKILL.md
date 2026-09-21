@@ -10,6 +10,7 @@ description: >
 
 # Spec Kit Initialization and Workflow Authoring
 
+Install latest speckit from official speckit git repo: https://github.com/github/spec-kit
 Create a truthful, codebase-specific Spec Kit setup. This skill owns
 installation, integration, constitution work, and guide authoring; it does not
 implement application features from specs.
