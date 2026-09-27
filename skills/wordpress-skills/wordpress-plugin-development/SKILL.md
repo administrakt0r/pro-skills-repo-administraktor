@@ -59,6 +59,11 @@ Use this workflow when:
 4. Set up autoloading
 5. Configure text domain
 
+#### Internationalization & Text Domain (WordPress 4.6+)
+- **Do NOT call `load_plugin_textdomain()`** when hosted on WordPress.org:
+  WordPress 4.6+ automatically loads translations just-in-time (JIT) under your plugin slug from `translate.wordpress.org`. Manually calling `load_plugin_textdomain()` is discouraged and flagged by WordPress.org Plugin Check (`PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound`).
+- Only call `load_textdomain()` when explicitly loading a bundled custom/fallback catalog (e.g. for a packaged locale file directly in `languages/`).
+
 #### WordPress 7.0 Plugin Header
 ```php
 /*
@@ -147,6 +152,46 @@ const MyPluginDataView = () => {
 4. Set up data sanitization
 5. Create data upgrade routines
 
+#### Custom Tables & `$wpdb` Best Practices (WordPress 6.2+ & Plugin Check)
+
+- **Use `%i` Identifier Placeholders**: Always use `%i` for table and column names in `$wpdb->prepare()`. Never use PHP string interpolation (`"SELECT * FROM {$this->table}"`), which triggers `WordPress.DB.PreparedSQL.InterpolatedNotPrepared`.
+```php
+// Correct (WordPress 6.2+):
+$wpdb->get_row(
+    $wpdb->prepare( 'SELECT * FROM %i WHERE id = %d', $this->table, (int) $id ),
+    ARRAY_A
+);
+```
+
+- **Custom Table Direct Query Annotations**: Custom tables have no core WP abstraction (like `get_posts`), so direct `$wpdb` calls are expected. However, `WordPress.DB.DirectDatabaseQuery` and caching sniffs will flag them. Annotate legitimate custom table operations:
+```php
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom database table query.
+$wpdb->insert( $this->table, $row, $formats );
+```
+
+- **Unescaped DB Parameters (`PluginCheck.Security.DirectDB.UnescapedDBParameter`)**:
+  - Plugin Check inspects all parameters passed to `$wpdb->query()`, `$wpdb->get_results()`, `$wpdb->get_var()`.
+  - When building dynamic clauses like `$where` or `$orderby`, sanitize column names via an explicit whitelist and add the specific ignore annotation:
+```php
+// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $where clauses contain safe placeholders and values are bound via prepare().
+$total = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM %i {$where}", $query_params ) );
+```
+
+- **Dynamic `IN (...)` Placeholders & Complex Queries**:
+  - Dynamically constructed placeholder lists (e.g. `IN ({$placeholders})`) and argument arrays can cause static sniff token mismatches (`ReplacementsWrongNumber`, `UnfinishedPrepare`).
+  - For complex multi-line SQL statements, wrap the block with `phpcs:disable` and `phpcs:enable`:
+```php
+// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+$sql = $wpdb->prepare(
+    "SELECT history.* FROM {$this->table} AS history
+    INNER JOIN ( ... WHERE product_id IN ({$placeholders}) ) ...",
+    $params
+);
+// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+```
+
+- **Precision Annotation Placement**: Single-line `phpcs:ignore` applies **only** to the immediate next line. When `$wpdb->prepare()` or SQL strings span multiple lines, place the comment on the line where the token starts or wrap the statement.
+
 #### REST-Ready Post Meta
 ```php
 // Register meta exposed via the REST API
@@ -192,6 +237,18 @@ register_term_meta('category', 'my_term_field', [
 - Validate AI connector credential handling
 - Review collaboration data isolation
 - PHP 7.4+ requirement compliance
+
+#### Query Parameter False Positives (`WordPressVIPMinimum`)
+- Sniff `WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude` inspects *any* PHP array for keys `'exclude'` and `'post__not_in'`.
+- Non-WP_Query structures like HTML form dropdown options, WooCommerce `wc_get_products()`, or custom catalog option arrays will trigger false positives.
+- Annotate legitimate non-WP_Query array keys:
+```php
+// Form options array:
+'exclude' => __( 'All except selected', 'my-plugin' ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- Form dropdown option, not WP_Query.
+
+// WooCommerce query array:
+'exclude' => array_map( 'intval', $exclude_ids ), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- WooCommerce wc_get_products argument.
+```
 
 ### Phase 8: WordPress 7.0 Features
 
@@ -363,6 +420,15 @@ addFilter(
 - Validate DataViews integration
 - Test Interactivity API with watch()
 
+#### WordPress.org Plugin Check (PCP) Compliance
+- Submitting to WordPress.org triggers automated checks using the official **Plugin Check (PCP)** plugin (`WordPress/plugin-check`), running WordPressCS, VIPCS, and PluginCheck sniffs.
+- **Important**: WordPress.org audits **ignore** local `phpcs.xml.dist` `<exclude-pattern>` tags. If you exclude `src/Database/*` locally, WordPress.org will still audit every file and fail the submission.
+- Run checks with the official Plugin Check WP-CLI command or PCP ruleset before submission:
+  ```bash
+  wp plugin check <plugin-slug>
+  ```
+- All code must pass with **0 errors and 0 warnings**.
+
 ## Exposing Plugin Functionality via MCP
 
 If your plugin registers Abilities, the official MCP Adapter can expose them to AI
@@ -435,6 +501,7 @@ plugin-name/
 - [ ] All hooks working
 - [ ] Admin interface functional
 - [ ] Security measures implemented
+- [ ] WordPress.org Plugin Check (PCP) passed with 0 errors and 0 warnings
 - [ ] Tests passing
 - [ ] Documentation complete
 - [ ] WordPress 7.0 compatibility verified

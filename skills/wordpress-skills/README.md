@@ -51,6 +51,12 @@ Corrections applied during review:
   first, PII redaction, rate limiting, and advisory-only model output.
 - **Cross-references.** References to skills not present in this repository were
   removed, per this repository's [skill checklist](../../README.md#adding-a-skill).
+- **WordPress.org Plugin Check (PCP) & coding standards.** Added requirements for
+  automated WordPress.org plugin directory audits: avoiding discouraged
+  `load_plugin_textdomain()` calls (WordPress 4.6+ loads JIT), using `%i`
+  identifier placeholders in `$wpdb->prepare()`, annotating custom table direct
+  queries and caching, handling dynamic parameter escaping, and preventing false
+  positives on `WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude`.
 
 ## Prerequisites
 
