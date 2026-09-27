@@ -487,6 +487,17 @@ function woocommerce_process_order_handler($input) {
 - Responsive grid block
 - View transitions for perceived performance
 
+#### Query Performance & Coding Standards (`wc_get_products`)
+- When passing `'exclude'` to `wc_get_products()`, annotate the array key to prevent false positives from VIPCS (`WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude`):
+```php
+$products = wc_get_products([
+    'limit'   => 50,
+    'status'  => 'publish',
+    'exclude' => array_map('intval', $excluded_ids), // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- WooCommerce wc_get_products argument.
+]);
+```
+- For custom database tables (e.g. price histories, audit logs), use `%i` identifier placeholders in `$wpdb->prepare()` and annotate direct queries as outlined in the `wordpress-plugin-development` workflow.
+
 ### Phase 8: Testing
 
 #### Actions
@@ -570,6 +581,7 @@ Manual QA checklist for AI features:
 - [ ] Shipping calculating
 - [ ] Emails sending
 - [ ] Mobile responsive
+- [ ] Coding standards verified (no unescaped DB parameters or unannotated query false positives)
 - [ ] AI features tested (WP 7.0)
 - [ ] DataViews working (WP 7.0)
 

@@ -25,6 +25,9 @@ cp -R skills/wordpress-skills/wordpress-plugin-development ~/.config/opencode/sk
   custom MCP servers via `mcp_adapter_init`
 - Correct AI Client usage (chained fluent builder) and REST-ready post meta
 - Security checklist: nonces, capabilities, sanitization, escaping, prepared SQL
+- Database best practices: `%i` identifier placeholders, custom table caching
+  annotations, and dynamic query parameter safety
+- WordPress.org Plugin Check (PCP) compliance and automated review readiness
 
 See the [bundle README](../README.md) for provenance, review notes, and MCP
 setup detail.

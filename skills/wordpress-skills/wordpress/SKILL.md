@@ -144,6 +144,8 @@ theme-name/
 
 #### WordPress 7.0 Plugin Considerations
 - **REST-Ready Meta**: Register post meta with `show_in_rest => true` (keeps data editable via REST and ready for future collaboration features)
+- **Database Security (`$wpdb`)**: Use `%i` identifier placeholders in `$wpdb->prepare()` (WP 6.2+) for dynamic table/column names; avoid string interpolation `{$this->table}`
+- **Translations (WP 4.6+)**: Do not call `load_plugin_textdomain()` for WordPress.org plugins; core loads translations JIT automatically
 - **AI Integration**: Use `wp_ai_client_prompt()` for AI features
 - **DataViews**: Consider new admin UI patterns
 - **Meta Boxes**: Migrate to block-based UIs for collaboration support
@@ -301,6 +303,7 @@ plugin-name/
 - Test collaboration workflows when the feature plugin is active
 - Validate AI connector functionality
 - Test Interactivity API with watch()
+- Verify WordPress.org Plugin Check (`wp plugin check`) with 0 errors and 0 warnings (WordPress.org audits ignore local `phpcs.xml.dist` exclusions)
 
 ### Phase 8: Deployment
 
@@ -555,6 +558,7 @@ Before moving to next phase, verify:
 - [ ] Cross-browser tested
 - [ ] Mobile responsive verified
 - [ ] Accessibility checked (WCAG 2.1)
+- [ ] WordPress.org Plugin Check passed with 0 errors and 0 warnings (for plugins)
 - [ ] WordPress 7.0 compatibility verified (for new projects)
 
 ## Related skills
