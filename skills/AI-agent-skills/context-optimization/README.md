@@ -47,16 +47,18 @@ cp -R pro-skills-repo-administraktor/skills/AI-agent-skills/context-optimization
   ~/.config/opencode/skills/context-optimization
 ```
 
-OpenCode reads skills from `~/.config/opencode/skills`. Codex reads from
-`~/.codex/skills`. Other agents have their own documented location; place the
-complete directory there.
+OpenCode reads skills from `~/.config/opencode/skills` and also picks up
+`~/.claude/skills` and `~/.agents/skills`. Claude Code reads from
+`~/.claude/skills`. Codex reads user skills from `~/.agents/skills` and
+repository skills from `.agents/skills`. Other agents have their own documented
+location; place the complete directory there.
 
 ## Files
 
 | File | Purpose |
 | --- | --- |
 | `SKILL.md` | Technique selection and operating rules |
-| `references/optimization-techniques.md` | Summary recipes, worksheets, worked examples, failure modes |
+| `references/optimization-techniques.md` | Summary recipes, worksheets, worked examples, failure modes, provider cache and compaction mechanics |
 
 ## Provenance
 

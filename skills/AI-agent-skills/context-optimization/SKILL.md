@@ -25,7 +25,10 @@ compression tends to remove the wrong material and keep the noise.
 Trigger optimization when utilization passes roughly 70 percent, when answer
 quality drops as a session lengthens, or when cost and latency climb with
 conversation length. Treat 70 percent as a planning heuristic and reserve
-headroom for the response itself.
+headroom for the response itself. Quality can also decay before the window
+fills: recall and instruction-following weaken as the window grows, so a
+session that has stopped holding the task needs attention even with room to
+spare.
 
 ## Compaction
 
@@ -54,6 +57,14 @@ writing a summarizer. It already knows the message boundaries. Before triggering
 it, write down what the session must not lose: the current goal, the files
 touched, the decisions made, and the next step. After compaction, re-read that
 list and restore anything the summary dropped.
+
+Compaction is lossy by design, and most runtimes keep a slice of the most recent
+conversation beside the summary rather than compacting everything. Widen that
+slice when recent detail matters more than reclaiming space. When the platform
+can compact or clear old tool results on its side — server-side context
+management that runs before token counting and cache lookup — prefer it to
+hand-rolled trimming: it is tuned to the runtime and leaves the cached prefix
+intact.
 
 ## Observation masking
 
@@ -91,6 +102,16 @@ Cache hits depend on stability. Keep formatting consistent, keep timestamps and
 random identifiers out of the cached region, and append new content rather than
 rewriting what precedes it. When the system prompt must change, change it at the
 end rather than at the beginning.
+
+Caching is provider-side and conditional, so confirm the mechanics rather than
+assuming them. A prefix usually caches only above a minimum size — commonly
+around 1,024 tokens, higher for some models — and it must match the earlier
+request byte for byte. Cached entries expire after a short idle window, roughly
+five minutes and refreshed on use, with longer lifetimes available on some
+providers. Writes can cost more than uncached input while reads are heavily
+discounted, so a prefix that never hits is pure overhead. Measure the real hit
+rate from the provider's usage fields — cached or cache-read input tokens —
+before trusting any target.
 
 ## Context partitioning
 
@@ -157,4 +178,5 @@ drops.
 `references/optimization-techniques.md` holds the detail that would crowd this
 file: summary recipes per content type, a masking retention worksheet, a
 cache-ordering template with a worked example, partitioning patterns, a budget
-worksheet, and the degradation checklist.
+worksheet, the degradation checklist, a failure-mode table, and provider cache
+and compaction mechanics.

@@ -201,3 +201,44 @@ carry constraints forward explicitly, retain references, or stabilize the prefix
 | Compacting at the limit | No room to write the summary | Trigger at the threshold |
 | Merging partitions without checking coverage | Silent gaps in the answer | Confirm every partition returned |
 | Unstable prefix content | Cache hit rate near zero | Append, keep volatility last |
+
+## 8. Provider cache and compaction mechanics
+
+Mechanics differ per provider and per model. The figures below were checked
+against the linked documentation in September 2026; re-verify before relying
+on them, and prefer the provider's own docs over any table like this one.
+
+| Provider | Caching | Minimum cached prefix | Cache lifetime | Cost |
+| --- | --- | --- | --- | --- |
+| OpenAI | automatic on supported models | 1,024 visible input tokens (GPT-5.6 and later; varies by request settings earlier) | 5 to 10 minutes idle, up to 1 hour off-peak | reads at 0.1x uncached input on GPT-5.6 and later, model-dependent earlier |
+| Anthropic | explicit `cache_control: {"type": "ephemeral"}` breakpoints, up to 4 per request; an automatic breakpoint is also available | 1,024 tokens for many models, higher for some | 5 minutes default, refreshed on use; 1 hour available at 2x write cost | writes 1.25x base input (5-minute) or 2x (1-hour); reads 0.1x |
+| Others | some implicit, some explicit, some billing storage per hour | check the provider docs | check the provider docs | check the provider docs |
+
+Common to all of them:
+
+- The cached region is a byte-exact prefix. One changed character early in the
+  prompt costs the whole prefix.
+- Cache reads still count toward rate limits; caching changes cost and latency,
+  not capacity.
+- Usage responses report cached tokens in their own fields. That is where a
+  real hit rate comes from, not from the layout alone.
+
+Server-side context management runs alongside caching and is usually
+cache-friendly by construction:
+
+- Anthropic's context editing clears old tool results and thinking blocks
+  before token counting and after cache lookup, replacing them with
+  placeholders, and pairs with a memory tool so the model can save state before
+  it is cleared.
+- The OpenAI Responses API can drop or compact older conversation to fit the
+  window and exposes a compaction operation on a response.
+- Agent runtimes such as OpenCode summarize older conversation automatically
+  while keeping a configurable slice of recent turns beside the summary, and
+  some can delegate compaction to the provider.
+
+Sources:
+- https://developers.openai.com/api/docs/guides/prompt-caching
+- https://platform.claude.com/docs/en/build-with-claude/prompt-caching
+- https://platform.claude.com/docs/en/build-with-claude/context-editing
+- https://developers.openai.com/api/reference/resources/responses/methods/compact
+- https://opencode.ai/v2/docs/compaction/
