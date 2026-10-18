@@ -13,7 +13,7 @@ Keep the index sorted by skill name.
 | context-optimization | skills/AI-agent-skills/context-optimization/ | 1 | 2026-09-28 | updated | Cache/compaction provider mechanics added; Codex install path corrected |
 | linux-speed-optimizer | skills/system-administration-skills/linux-speed-optimizer/ | 0 | — | unaudited | Contains version-sensitive tuning commands; re-verify against current kernel/systemd docs |
 | pullrequests-review-merge | skills/git-skills/pullrequests-review-merge/ | 0 | — | unaudited | Not in this log until 2026-09-28 (added in commit 6417ad4 after the last run); frontmatter name is `pr-review-merge` |
-| readme-generator | skills/other-skills/readme-writing-skill/ | 0 | — | unaudited | Directory name is `readme-writing-skill`, frontmatter name is `readme-generator` |
+| readme-generator | skills/writing-skills/readme-writing-skill/ | 0 | — | unaudited | Directory name is `readme-writing-skill`, frontmatter name is `readme-generator` |
 | speckit-init | skills/development-skills/speckit-init/ | 0 | — | unaudited | Pins commands to github/spec-kit — check upstream rewrites before trusting commands |
 | tui-design | skills/UI-UX-skills/TUI-skills/ | 0 | — | unaudited | Imported before this log existed; no audit run recorded |
 | wordpress | skills/wordpress-skills/wordpress/ | 1 | 2026-09-27 | updated | Import audit: RTC claims corrected, AI Client usage fixed, MCP section added |

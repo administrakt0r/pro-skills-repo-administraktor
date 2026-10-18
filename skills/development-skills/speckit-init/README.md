@@ -80,7 +80,10 @@ Write a constitution for this project based on the existing docs
 ```
 skills/development-skills/speckit-init/
 ├── SKILL.md      # The skill definition (follow this)
-└── README.md     # You are here
+├── README.md     # You are here
+└── references/
+    └── speckit-skills-guides-workflows/
+        └── SPECKIT-workflows.md
 ```
 
 ## Key design decisions

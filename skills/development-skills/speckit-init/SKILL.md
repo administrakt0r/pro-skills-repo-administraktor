@@ -45,7 +45,7 @@ one integration's `/speckit.*` syntax as universal.
 
 ## 3. Use the public workflow catalog selectively
 
-Read the [reusable Spec Kit workflow catalog](https://github.com/administrakt0r/pro-skills-repo-administraktor/blob/main/speckit-skills-guides-workflows/SPECKIT-workflows.md)
+Read the [reusable Spec Kit workflow catalog](references/speckit-skills-guides-workflows/SPECKIT-workflows.md)
 before authoring or materially revising `SPECKITINIT.md`.
 
 Treat it as a reference library, not a document to copy. Preserve its logical

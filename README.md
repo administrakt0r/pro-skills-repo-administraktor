@@ -25,14 +25,15 @@ operating guidance without prescribing a framework or stack.
 
 ## Skills
 
-Nine skills in five categories. Each row links to the directory you copy.
+Ten skills in six categories. Each row links to the directory you copy.
 
 | Skill | Category | Use it for | Location |
 | --- | --- | --- | --- |
 | `speckit-init` | Development | Installing, initializing, documenting, and maintaining [GitHub Spec Kit](https://github.com/github/spec-kit) in an existing repository. | [`skills/development-skills/speckit-init`](skills/development-skills/speckit-init/) |
+| `coding-guidelines-generator` | Development | Auto-detecting a project's tech stack(s), generating tailored per-stack `AGENTS-GUIDELINES-{STACK}.md` files, and injecting a mandatory read-and-obey directive into AGENTS.md. | [`skills/development-skills/coding-guidelines-generator`](skills/development-skills/coding-guidelines-generator/) |
 | `linux-speed-optimizer` | System administration | Evidence-led, approval-gated Linux performance analysis and tuning, with per-change verification and documented rollback. | [`skills/system-administration-skills/linux-speed-optimizer`](skills/system-administration-skills/linux-speed-optimizer/) |
 | `tui-design` | UI/UX | Designing and restyling terminal interfaces: layout, color, keyboard and mouse navigation, dashboards, and focus management. | [`skills/UI-UX-skills/TUI-skills`](skills/UI-UX-skills/TUI-skills/) |
-| `readme-writing-skill` | Other | Interviewing the project, then writing or rewriting a `README.md` with badges, working anchors, and a real quickstart. | [`skills/other-skills/readme-writing-skill`](skills/other-skills/readme-writing-skill/) |
+| `readme-writing-skill` | Writing | Interviewing the project, then writing or rewriting a `README.md` with badges, working anchors, and a real quickstart. | [`skills/writing-skills/readme-writing-skill`](skills/writing-skills/readme-writing-skill/) |
 | `context-optimization` | AI agents | Fitting more work in a fixed context window: compaction, observation masking, cache-friendly layout, and sub-agent partitioning. | [`skills/AI-agent-skills/context-optimization`](skills/AI-agent-skills/context-optimization/) |
 | `wordpress` | WordPress | The end-to-end WordPress workflow: setup, themes, plugins, WooCommerce, performance, security, deployment, and the 7.0 feature set with MCP integration. | [`skills/wordpress-skills/wordpress`](skills/wordpress-skills/wordpress/) |
 | `wordpress-theme-development` | WordPress | Themes from scratch: `theme.json` v3, template hierarchy, block patterns, navigation overlays, breadcrumbs, and block styles. | [`skills/wordpress-skills/wordpress-theme-development`](skills/wordpress-skills/wordpress-theme-development/) |
@@ -124,7 +125,7 @@ skill this run, and record the run in skillcheck-log.md as instructed.
 
 ## Spec Kit resources
 
-The framework- and agent-neutral [Spec Kit workflow guide](speckit-skills-guides-workflows/SPECKIT-workflows.md)
+The framework- and agent-neutral [Spec Kit workflow guide](skills/development-skills/speckit-init/references/speckit-skills-guides-workflows/SPECKIT-workflows.md)
 covers the full specification-driven development cycle, optional stages,
 maintenance, and safety boundaries. Use it as a reusable reference. Keep project
 facts in that project's `SPECKITINIT.md`.
