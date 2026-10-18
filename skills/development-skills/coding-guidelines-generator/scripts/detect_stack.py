@@ -116,8 +116,17 @@ def detect_monorepo(root: Path, files: List[Path], dirs: List[Path]) -> Tuple[bo
     if "include(" in settings_gradle or "include " in settings_gradle:
         is_monorepo = True
 
-    # Scan package directories
-    candidate_dirs = [d for d in dirs if d != root and (d.parent == root or d.parent.parent == root)]
+    # Scan package directories throughout the configured scan depth. Workspace
+    # packages may be nested below the second directory level.
+    package_markers = (
+        "package.json", "pyproject.toml", "setup.py", "Cargo.toml", "go.mod",
+        "pom.xml", "build.gradle", "build.gradle.kts", "composer.json", "Makefile",
+        "index.html"
+    )
+    candidate_dirs = [
+        d for d in dirs
+        if d != root and any((d / marker).exists() for marker in package_markers)
+    ]
     for c_dir in candidate_dirs:
         has_pkg = (c_dir / "package.json").exists() or (c_dir / "build.gradle").exists() or \
                   (c_dir / "build.gradle.kts").exists() or (c_dir / "Cargo.toml").exists() or \
@@ -152,13 +161,15 @@ def detect_android(dir_path: Path, is_root: bool = False) -> Optional[Dict[str, 
 
     # Check Gradle files in this specific directory only
     gradle_files = ["build.gradle", "build.gradle.kts"]
+    has_module_files = (dir_path / "AndroidManifest.xml").exists() or (dir_path / "src" / "main").exists()
     for gfile_name in gradle_files:
         gpath = dir_path / gfile_name
         if gpath.exists():
             content = read_file_safe(gpath)
             if "com.android.application" in content or "com.android.library" in content or "com.android" in content:
-                has_android_plugin = True
-                evidence.append(gfile_name)
+                if has_module_files or "apply false" not in content:
+                    has_android_plugin = True
+                    evidence.append(gfile_name)
             if "compose" in content or "androidx.compose" in content or "composeOptions" in content:
                 is_compose = True
             if "org.jetbrains.kotlin" in content or "kotlin" in content or gfile_name.endswith(".kts"):
@@ -396,16 +407,20 @@ def detect_js_ts_react_next(dir_path: Path, has_primary_non_js: bool) -> Tuple[O
     Returns (primary_stack, secondary_tooling).
     """
     pkg_json_path = dir_path / "package.json"
-    if not pkg_json_path.exists():
+    has_package_json = pkg_json_path.exists()
+    pkg_data = parse_json_safe(pkg_json_path) if has_package_json else {}
+    source_files = [
+        path for extension in ("*.js", "*.mjs", "*.cjs", "*.ts", "*.mts", "*.cts")
+        for path in dir_path.glob(extension)
+    ]
+    if not has_package_json and not source_files:
         return None, None
-
-    pkg_data = parse_json_safe(pkg_json_path)
     deps = pkg_data.get("dependencies", {})
     dev_deps = pkg_data.get("devDependencies", {})
     all_deps = {**deps, **dev_deps}
     scripts = pkg_data.get("scripts", {})
 
-    evidence = ["package.json"]
+    evidence = ["package.json"] if has_package_json else [path.name for path in source_files[:5]]
 
     pm = "npm"
     if (dir_path / "pnpm-lock.yaml").exists():
@@ -696,7 +711,9 @@ def detect_java_backend(dir_path: Path) -> Optional[Dict[str, Any]]:
             "agents_md_link": "- Read `./AGENTS-GUIDELINES-JAVA.md` when working on Java / Kotlin backend services."
         }
 
-    if (build_gradle.exists() or build_gradle_kts.exists()) and (dir_path / "src" / "main" / "java").exists():
+    java_source = (dir_path / "src" / "main" / "java").exists()
+    kotlin_source = (dir_path / "src" / "main" / "kotlin").exists()
+    if (build_gradle.exists() or build_gradle_kts.exists()) and (java_source or kotlin_source):
         gw = (dir_path / "gradlew").exists()
         return {
             "stack": "java",
@@ -707,7 +724,7 @@ def detect_java_backend(dir_path: Path) -> Optional[Dict[str, Any]]:
             "guideline_files_to_generate": [
                 {"file": "AGENTS-GUIDELINES-JAVA.md", "reference": "references/java.md", "substitutions": {}}
             ],
-            "version": "Java (Gradle)",
+            "version": "Kotlin (Gradle)" if kotlin_source and not java_source else "Java (Gradle)",
             "package_manager": "gradle",
             "build_command": "./gradlew build" if gw else "gradle build",
             "test_command": "./gradlew test" if gw else "gradle test",
@@ -869,21 +886,13 @@ def scan_target(root: Path, max_depth: int = 4) -> Dict[str, Any]:
             if p_path not in targets:
                 targets.append(p_path)
 
-    seen_android_apps: Set[str] = set()
-
     for target_dir in targets:
         rel_dir = str(target_dir.relative_to(root)) if target_dir != root else "."
         has_local_agents_md = (target_dir / "AGENTS.md").exists()
 
-        # 1. Android (avoid duplicate module ownership)
+        # 1. Android. Each module owns its own report entry; display metadata
+        # such as minSdk/version is not a unique module identifier.
         android_res = detect_android(target_dir, is_root=(target_dir == root))
-        if android_res:
-            # If root detected android via app submodule, deduplicate
-            app_id = android_res["version"]
-            if app_id in seen_android_apps:
-                android_res = None
-            else:
-                seen_android_apps.add(app_id)
 
         # 2. WordPress / PHP
         wp_php_res = detect_wordpress_and_php(target_dir)
@@ -913,7 +922,7 @@ def scan_target(root: Path, max_depth: int = 4) -> Dict[str, Any]:
         shell_res = detect_shell(target_dir, has_other_primary=has_any_primary)
 
         # 8. HTML/CSS (only if no other primary stack)
-        html_res = detect_html_css(target_dir, has_other_primary=has_any_primary or (shell_res is not None))
+        html_res = detect_html_css(target_dir, has_other_primary=has_any_primary)
 
         detected_for_dir = []
         if android_res:

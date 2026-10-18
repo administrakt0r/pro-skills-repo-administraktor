@@ -301,13 +301,61 @@ def test_detection_fixtures() -> None:
         android_stacks = [s for s in rep["stacks"] if s["stack"] == "android"]
         assert len(android_stacks) == 1, f"Expected exactly 1 Android stack, found {len(android_stacks)}"
 
+        # 26. Distinct Android modules are retained even with identical metadata
+        f_android_modules = create_fixture(temp_dir, "android_modules", {
+            "settings.gradle": 'include ":app", ":library"',
+            "app/build.gradle": 'plugins { id "com.android.application" }',
+            "app/src/main/AndroidManifest.xml": '<manifest package="com.example.app"/>',
+            "library/build.gradle": 'plugins { id "com.android.library" }',
+            "library/src/main/AndroidManifest.xml": '<manifest package="com.example.library"/>'
+        })
+        rep = run_detector(f_android_modules)
+        android_dirs = {s["directory"] for s in rep["stacks"] if s["stack"] == "android"}
+        assert android_dirs == {"app", "library"}, f"Unexpected Android module directories: {android_dirs}"
+
+        # 27. Standalone JavaScript source without package.json
+        f_standalone_js = create_fixture(temp_dir, "standalone_js", {
+            "main.mjs": "console.log('hello');\n"
+        })
+        rep = run_detector(f_standalone_js)
+        assert rep["stacks"][0]["stack"] == "javascript"
+
+        # 28. Kotlin-only Gradle backend
+        f_kotlin = create_fixture(temp_dir, "kotlin_backend", {
+            "build.gradle.kts": "plugins { kotlin(\"jvm\") version \"2.0.0\" }\n",
+            "src/main/kotlin/App.kt": "fun main() = println(\"ok\")\n"
+        })
+        rep = run_detector(f_kotlin)
+        assert rep["stacks"][0]["stack"] == "java"
+        assert rep["stacks"][0]["version"] == "Kotlin (Gradle)"
+
+        # 29. Workspace package below the second directory level
+        f_deep_workspace = create_fixture(temp_dir, "deep_workspace", {
+            "pnpm-workspace.yaml": "packages:\n  - 'apps/*/*'\n",
+            "apps/team/web/package.json": json.dumps({"name": "web", "dependencies": {"react": "19.0.0"}}),
+            "apps/team/web/AGENTS.md": "# Web Guidelines"
+        })
+        rep = run_detector(f_deep_workspace)
+        assert any(s["directory"] == "apps/team/web" for s in rep["stacks"])
+
+        # 30. Static HTML remains visible alongside shell deployment helpers
+        f_html_shell = create_fixture(temp_dir, "html_shell", {
+            "index.html": "<!DOCTYPE html><html><body><h1>Hi</h1></body></html>",
+            ".shellcheckrc": "disable=SC2086\n",
+            "deploy.sh": "#!/usr/bin/env bash\necho deploy\n",
+            "build.sh": "#!/usr/bin/env bash\necho build\n"
+        })
+        rep = run_detector(f_html_shell)
+        stacks = {s["stack"] for s in rep["stacks"]}
+        assert {"shell", "html-css"}.issubset(stacks)
+
         # 26. Dynamic AGENTS.md links only include detected stacks
         rep_py = run_detector(f_py_plain)
         assert "AGENTS-GUIDELINES-PYTHON.md" in rep_py["dynamic_agents_section"]
         assert "AGENTS-GUIDELINES-JS.md" not in rep_py["dynamic_agents_section"]
         assert "AGENTS-GUIDELINES-ANDROID.md" not in rep_py["dynamic_agents_section"]
 
-        print("✓ All 26 stack detection fixture tests passed successfully!")
+        print("✓ All 31 stack detection fixture tests passed successfully!")
 
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
@@ -439,6 +487,22 @@ def test_upsert_script() -> None:
         assert restored_user_content == original_user_content, (
             f"Expected byte-for-byte preservation.\nExpected: {repr(original_user_content)}\nActual:   {repr(restored_user_content)}"
         )
+
+        # 8. CRLF bytes outside managed markers remain unchanged
+        crlf_file = temp_dir / "CRLF_PRESERVE.md"
+        original_crlf = b"User line 1\r\nUser line 2\r\n"
+        crlf_file.write_bytes(original_crlf)
+        subprocess.run([
+            sys.executable, str(UPSERT_SCRIPT),
+            "--file", str(crlf_file),
+            "--content", "Managed CRLF block"
+        ], capture_output=True, text=True, check=True)
+        subprocess.run([
+            sys.executable, str(UPSERT_SCRIPT),
+            "--file", str(crlf_file),
+            "--remove"
+        ], capture_output=True, text=True, check=True)
+        assert crlf_file.read_bytes() == original_crlf
 
         print("✓ All upsert_section.py lifecycle, substitution, and byte-preservation tests passed successfully!")
 

@@ -86,8 +86,13 @@ def apply_upsert(
         before = existing_content[:start_idx]
         after = existing_content[end_idx:]
 
-        # Clean only the boundary separator between before and after
-        if before.endswith("\n\n") and after.startswith("\n"):
+        # Remove only the separators introduced around the managed block. A
+        # CRLF file gets one LF separator added before the marker, so remove
+        # that separator and the marker's trailing LF independently.
+        if before.endswith("\r\n\n") and after.startswith("\n"):
+            before = before[:-1]
+            after = after[1:]
+        elif before.endswith("\n\n") and after.startswith("\n"):
             after = after[1:]
         elif not before and after.startswith("\n"):
             after = after.lstrip("\n")
@@ -185,7 +190,10 @@ def main() -> int:
 
     existing_content = ""
     if target_path.exists():
-        existing_content = target_path.read_text(encoding="utf-8")
+        # Read bytes directly so Python does not normalize CRLF to LF before
+        # the managed block is updated. User-owned bytes outside the markers
+        # must remain unchanged.
+        existing_content = target_path.read_bytes().decode("utf-8")
 
     updated_content = apply_upsert(
         existing_content=existing_content,
@@ -217,7 +225,7 @@ def main() -> int:
         return 0
 
     target_path.parent.mkdir(parents=True, exist_ok=True)
-    target_path.write_text(updated_content, encoding="utf-8")
+    target_path.write_bytes(updated_content.encode("utf-8"))
     return 0
 
 

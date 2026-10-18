@@ -171,7 +171,11 @@ Improve the candidate skill where needed before saving:
      to SQL queries, enforce explicit error handling, remove wildcard permissions).
 4. PRESERVE ATTRIBUTION:
    - Record the original author, upstream repository URL, commit hash/version,
-     and license (MIT, Apache-2.0, etc.) in the skill's README and frontmatter.
+     and license (MIT, Apache-2.0, etc.) in the skill's README.
+   - Keep `license` as a permitted top-level frontmatter field. Put arbitrary
+     provenance fields such as `author`, `upstream_repo`, and `commit` under a
+     `metadata` mapping; do not add them as top-level keys. Validate the final
+     frontmatter against the Agent Skills schema before accepting the import.
 
 ### Step 6 — Organization under `skills/imported/`
 
@@ -202,6 +206,10 @@ Improve the candidate skill where needed before saving:
      ├── `README.md`      (Documentation & provenance)
      ├── `references/`    (Reference guides, schemas, cheat sheets)
      └── `scripts/`       (Helper scripts, if applicable)
+   - Copy the governing repository-level `LICENSE` and any applicable `NOTICE`
+     files into the imported skill directory when they are not already present.
+     A license identifier in README.md does not replace required redistribution
+     materials.
 
 ### Step 7 — Index in Main README.md
 
@@ -231,6 +239,8 @@ Update the root `README.md` to register the newly imported skill:
 
 1. Verify:
    - Target files exist on disk and paths resolve.
+   - Re-run frontmatter/schema validation, relative-link checks, relevant tests,
+     and the security/injection scan against the final modernized tree.
    - `git status` shows clean, expected additions and modifications.
    - No untracked junk or temporary clone directories left behind.
 2. Present a clear final report to the user:
