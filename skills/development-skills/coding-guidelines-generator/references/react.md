@@ -1,7 +1,7 @@
 # React Guidelines
 
 > Verified: 2026-10-18, React Official Docs (react.dev), applies to React 18+ / React 19
-> Note: Extends JavaScript/TypeScript guidelines. Also observe `references/javascript.md` and `references/typescript.md`.
+> Note: Extends JavaScript/TypeScript guidelines. Also read AGENTS-GUIDELINES-JS.md.
 
 ## Hooks & Component State
 - **Rules of Hooks**: Only call hooks at the top level of function components or custom hooks. Never call hooks inside loops, conditions, or nested functions.

@@ -1,7 +1,7 @@
 # WordPress Guidelines
 
 > Verified: 2026-10-18, WordPress Developer Handbook, applies to WordPress 6.5+ / 6.7 / 7.0
-> Note: Extends PHP guidelines. Also observe `references/php.md`.
+> Note: Extends PHP guidelines. Also read AGENTS-GUIDELINES-PHP.md.
 
 ## Data Sanitization & Escaping
 - **Sanitize Input**: Sanitize all incoming input early using WordPress functions (`sanitize_text_field()`, `sanitize_key()`, `absint()`).

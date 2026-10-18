@@ -1,9 +1,11 @@
 # Python Guidelines
 
-> Verified: 2026-10-18, Python Official Docs & PEP Standards, applies to Python 3.10+ / 3.11 / 3.12 / 3.13
+> Verified: 2026-10-18, Python Official Docs & PEP Standards, applies to Python 3.8+ (including 3.10 / 3.11 / 3.12 / 3.13)
 
 ## Type Annotations & Clean Code
-- **Type Hints**: Provide type hints for all function arguments, return types, and class attributes on public interfaces. Use modern built-in generics (`list[str]`, `dict[str, Any]`, `X | Y` union syntax).
+- **Type Hints & Version Compatibility**: Provide type hints for all function arguments, return types, and class attributes on public interfaces.
+  - Python 3.10+: Use modern built-in generics (`list[str]`, `dict[str, Any]`) and `|` union syntax (`str | None`).
+  - Python 3.8 / 3.9: Add `from __future__ import annotations` at the top of the module to use `|` union syntax and built-in generics in annotations, or use `typing.Union` / `typing.Optional`.
 - **No Mutable Defaults**: Never use mutable objects (empty lists `[]`, dictionaries `{}`) as default parameter values. Use `None` as the default and initialize inside the function body.
 - **Filesystem & Paths**: Use `pathlib.Path` instead of raw string manipulation with `os.path`.
 

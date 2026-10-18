@@ -87,7 +87,7 @@ skills/development-skills/coding-guidelines-generator/
 │   ├── baseline.md           # Portable baseline
 │   └── agents-md-section.md  # Template link block for AGENTS.md
 └── tests/
-    └── run_tests.py          # Fixture-based test suite (19 fixtures + upsert tests)
+    └── run_tests.py          # Fixture-based test suite (26 fixtures + upsert lifecycle, substitution & byte-preservation tests)
 ```
 
 ## Installation

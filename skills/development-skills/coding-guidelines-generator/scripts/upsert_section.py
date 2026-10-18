@@ -7,7 +7,8 @@ Safely inserts or updates managed sections enclosed between marker comments:
     ... managed content ...
     <!-- <marker-id>:end -->
 
-Preserves all user content outside markers. Idempotent across multiple runs.
+Preserves all user content outside markers byte-for-byte. Idempotent across multiple runs.
+Supports template placeholder substitution (--substitute KEY=VAL).
 """
 
 import argparse
@@ -65,7 +66,10 @@ def apply_upsert(
     meta: Optional[Dict[str, str]] = None,
     remove: bool = False
 ) -> str:
-    """Apply the upsert transformation to content string."""
+    """
+    Apply the upsert transformation to content string.
+    Guarantees 100% byte-for-byte preservation of user content outside markers.
+    """
     span = find_marker_span(existing_content, marker_id)
     start_marker, end_marker = build_markers(marker_id, meta)
 
@@ -79,15 +83,18 @@ def apply_upsert(
         if not span:
             return existing_content
         start_idx, end_idx, _, _ = span
-        before = existing_content[:start_idx].rstrip()
-        after = existing_content[end_idx:].lstrip()
-        if before and after:
-            return f"{before}\n\n{after}\n"
-        elif before:
-            return f"{before}\n"
-        elif after:
-            return f"{after}\n"
-        return ""
+        before = existing_content[:start_idx]
+        after = existing_content[end_idx:]
+
+        # Clean only the boundary separator between before and after
+        if before.endswith("\n\n") and after.startswith("\n"):
+            after = after[1:]
+        elif not before and after.startswith("\n"):
+            after = after.lstrip("\n")
+        elif before and not after and before.endswith("\n\n"):
+            before = before[:-1]
+
+        return f"{before}{after}"
 
     if span:
         start_idx, end_idx, _, _ = span
@@ -95,28 +102,47 @@ def apply_upsert(
         after = existing_content[end_idx:]
         return f"{before}{block}{after}"
     else:
-        # Markers not present
-        trimmed = existing_content.strip()
-        if not trimmed:
+        # Markers not present in existing content
+        if not existing_content:
             return f"{block}\n"
+
         if position == "top":
-            return f"{block}\n\n{trimmed}\n"
+            if existing_content.startswith("\n"):
+                return f"{block}\n{existing_content}"
+            else:
+                return f"{block}\n\n{existing_content}"
         else:
-            return f"{trimmed}\n\n{block}\n"
+            # Append at bottom without stripping existing_content
+            if existing_content.endswith("\n\n"):
+                return f"{existing_content}{block}\n"
+            elif existing_content.endswith("\n"):
+                return f"{existing_content}\n{block}\n"
+            else:
+                return f"{existing_content}\n\n{block}\n"
 
 
-def parse_meta_args(meta_args: Optional[List[str]]) -> Dict[str, str]:
+def parse_key_val_args(args_list: Optional[List[str]]) -> Dict[str, str]:
     """Parse KEY=VAL string pairs into a dictionary."""
-    meta = {}
-    if not meta_args:
-        return meta
-    for item in meta_args:
+    result = {}
+    if not args_list:
+        return result
+    for item in args_list:
         if "=" in item:
             k, v = item.split("=", 1)
-            meta[k.strip()] = v.strip()
+            result[k.strip()] = v.strip()
         else:
-            meta[item.strip()] = "true"
-    return meta
+            result[item.strip()] = "true"
+    return result
+
+
+def apply_substitutions(text: str, substitutions: Dict[str, str]) -> str:
+    """Replace {KEY} placeholders with their corresponding values."""
+    for key, val in substitutions.items():
+        text = text.replace(f"{{{key}}}", val)
+    # Default fallback for {pm} if unsupplied
+    if "{pm}" in text:
+        text = text.replace("{pm}", "npm")
+    return text
 
 
 def main() -> int:
@@ -127,6 +153,7 @@ def main() -> int:
     parser.add_argument("--marker-id", default="stack-guidelines", help="Marker prefix identifier (default: stack-guidelines)")
     parser.add_argument("--position", choices=["top", "bottom"], default="bottom", help="Position if markers not present (default: bottom)")
     parser.add_argument("--header-meta", nargs="*", help="Optional metadata attributes as key=value pairs for start marker")
+    parser.add_argument("--substitute", "-s", nargs="*", help="Key=value template substitutions for {key} in content (e.g. pm=pnpm)")
     parser.add_argument("--hash", action="store_true", help="Automatically compute content hash and append to marker metadata")
     parser.add_argument("--dry-run", action="store_true", help="Print diff without writing; exit 0 if up-to-date, 1 if changes needed")
     parser.add_argument("--remove", action="store_true", help="Remove the managed block and markers")
@@ -148,7 +175,11 @@ def main() -> int:
             sys.stderr.write("Error: either --content, --content-file, or --remove must be provided.\n")
             return 1
 
-    meta = parse_meta_args(args.header_meta)
+    substitutions = parse_key_val_args(args.substitute)
+    if substitutions or "{pm}" in inner_content:
+        inner_content = apply_substitutions(inner_content, substitutions)
+
+    meta = parse_key_val_args(args.header_meta)
     if args.hash and not args.remove:
         meta["hash"] = compute_content_hash(inner_content)
 

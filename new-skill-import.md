@@ -219,7 +219,7 @@ Update the root `README.md` to register the newly imported skill:
 ### Step 8 — Record in `new-skill-import-log.md`
 
 1. Add a row to the "Index of imported skills" table in `new-skill-import-log.md`:
-   | skill | category | upstream_repo | license | date | status | path |
+   | skill | category | upstream_repo | license | date | status | path | notes |
 2. Append a dated entry under `## Import log entries`:
    - Skill name and category
    - Upstream repository and commit/release URL
@@ -253,8 +253,8 @@ enhancements, and target paths.
 
 ## Index of imported skills
 
-| skill | category | upstream_repo | license | date | status | path |
-|-------|----------|---------------|---------|------|--------|------|
+| skill | category | upstream_repo | license | date | status | path | notes |
+|-------|----------|---------------|---------|------|--------|------|-------|
 
 ## Import log entries
 

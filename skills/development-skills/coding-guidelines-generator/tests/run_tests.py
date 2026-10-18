@@ -239,7 +239,75 @@ def test_detection_fixtures() -> None:
         assert len(rep["stacks"]) == 1
         assert rep["stacks"][0]["stack"] == "rust"
 
-        print("✓ All 19 stack detection fixture tests passed successfully!")
+        # 20. Java Backend (Maven)
+        f_java = create_fixture(temp_dir, "java_backend", {
+            "pom.xml": '<project xmlns="http://maven.apache.org/POM/4.0.0"><modelVersion>4.0.0</modelVersion><groupId>com.example</groupId><artifactId>demo</artifactId><version>1.0.0</version></project>',
+            "src/main/java/com/example/App.java": "package com.example; public class App {}"
+        })
+        rep = run_detector(f_java)
+        assert len(rep["stacks"]) == 1
+        assert rep["stacks"][0]["stack"] == "java"
+        assert rep["stacks"][0]["target_file"] == "AGENTS-GUIDELINES-JAVA.md"
+        assert "Maven" in rep["stacks"][0]["framework_addons"]
+
+        # 21. Shell Project
+        f_shell = create_fixture(temp_dir, "shell_project", {
+            ".shellcheckrc": "disable=SC2086\n",
+            "scripts/deploy.sh": "#!/usr/bin/env bash\nset -euo pipefail\necho 'Deploying'\n",
+            "scripts/build.sh": "#!/usr/bin/env bash\nset -euo pipefail\necho 'Building'\n"
+        })
+        rep = run_detector(f_shell)
+        assert len(rep["stacks"]) == 1
+        assert rep["stacks"][0]["stack"] == "shell"
+        assert rep["stacks"][0]["target_file"] == "AGENTS-GUIDELINES-SHELL.md"
+
+        # 22. Static HTML/CSS
+        f_html = create_fixture(temp_dir, "static_html", {
+            "index.html": "<!DOCTYPE html><html><head><title>App</title><link rel='stylesheet' href='styles.css'></head><body><h1>Hi</h1></body></html>",
+            "styles.css": "body { margin: 0; }"
+        })
+        rep = run_detector(f_html)
+        assert len(rep["stacks"]) == 1
+        assert rep["stacks"][0]["stack"] == "html-css"
+        assert rep["stacks"][0]["target_file"] == "AGENTS-GUIDELINES-HTML-CSS.md"
+
+        # 23. Generic / Unknown Stack Fallback
+        f_generic = create_fixture(temp_dir, "unknown_stack", {
+            "dataset.csv": "col1,col2\n1,2\n",
+            "notes.txt": "Project notes"
+        })
+        rep = run_detector(f_generic)
+        assert len(rep["stacks"]) == 1
+        assert rep["stacks"][0]["stack"] == "generic"
+        assert rep["stacks"][0]["target_file"] == "AGENTS-GUIDELINES-GENERIC.md"
+        assert "Read `./AGENTS-GUIDELINES-GENERIC.md`" in rep["dynamic_agents_section"]
+
+        # 24. Python with requires-python = ">=3.8"
+        f_py38 = create_fixture(temp_dir, "py_38", {
+            "pyproject.toml": '[project]\nname = "legacy-compat"\nrequires-python = ">=3.8"\nversion = "0.1.0"\n'
+        })
+        rep = run_detector(f_py38)
+        assert rep["stacks"][0]["stack"] == "python"
+        assert "3.8" in rep["stacks"][0]["version"]
+
+        # 25. Android nested app module deduplication
+        f_android_nested = create_fixture(temp_dir, "android_nested", {
+            "build.gradle": 'plugins { id "com.android.application" version "8.3.0" apply false }',
+            "settings.gradle": 'include ":app"',
+            "app/build.gradle": 'plugins { id "com.android.application" }',
+            "app/src/main/AndroidManifest.xml": '<manifest package="com.example.nested"/>'
+        })
+        rep = run_detector(f_android_nested)
+        android_stacks = [s for s in rep["stacks"] if s["stack"] == "android"]
+        assert len(android_stacks) == 1, f"Expected exactly 1 Android stack, found {len(android_stacks)}"
+
+        # 26. Dynamic AGENTS.md links only include detected stacks
+        rep_py = run_detector(f_py_plain)
+        assert "AGENTS-GUIDELINES-PYTHON.md" in rep_py["dynamic_agents_section"]
+        assert "AGENTS-GUIDELINES-JS.md" not in rep_py["dynamic_agents_section"]
+        assert "AGENTS-GUIDELINES-ANDROID.md" not in rep_py["dynamic_agents_section"]
+
+        print("✓ All 26 stack detection fixture tests passed successfully!")
 
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
@@ -333,7 +401,46 @@ def test_upsert_script() -> None:
         assert "# My Custom Project Header" in removed_content
         assert "Custom User Footer" in removed_content
 
-        print("✓ All upsert_section.py lifecycle and idempotency tests passed successfully!")
+        # 6. Template placeholder substitution (--substitute)
+        sub_file = temp_dir / "SUBST.md"
+        raw_template = "Run build with `{pm}` and deploy to `{env}`."
+        subprocess.run([
+            sys.executable, str(UPSERT_SCRIPT),
+            "--file", str(sub_file),
+            "--content", raw_template,
+            "--substitute", "pm=pnpm", "env=production"
+        ], capture_output=True, text=True, check=True)
+        sub_result = sub_file.read_text(encoding="utf-8")
+        assert "Run build with `pnpm` and deploy to `production`." in sub_result
+        assert "{pm}" not in sub_result
+
+        # 7. Byte-for-byte user content preservation with edge whitespace
+        byte_file = temp_dir / "BYTE_PRESERVE.md"
+        # Content with deliberate trailing spaces, trailing double newlines, etc.
+        original_user_content = "   Line with leading spaces\nTrailing space line   \n\n\n"
+        byte_file.write_text(original_user_content, encoding="utf-8")
+
+        # Insert section at bottom
+        subprocess.run([
+            sys.executable, str(UPSERT_SCRIPT),
+            "--file", str(byte_file),
+            "--content", "Managed block content",
+            "--position", "bottom"
+        ], capture_output=True, text=True, check=True)
+
+        # Remove section
+        subprocess.run([
+            sys.executable, str(UPSERT_SCRIPT),
+            "--file", str(byte_file),
+            "--remove"
+        ], capture_output=True, text=True, check=True)
+
+        restored_user_content = byte_file.read_text(encoding="utf-8")
+        assert restored_user_content == original_user_content, (
+            f"Expected byte-for-byte preservation.\nExpected: {repr(original_user_content)}\nActual:   {repr(restored_user_content)}"
+        )
+
+        print("✓ All upsert_section.py lifecycle, substitution, and byte-preservation tests passed successfully!")
 
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)

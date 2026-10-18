@@ -1,7 +1,7 @@
 # Next.js Guidelines
 
 > Verified: 2026-10-18, Next.js Official Docs, applies to Next.js 14+ / 15+
-> Note: Extends React guidelines. Also observe `references/react.md`, `references/typescript.md`, and `references/javascript.md`.
+> Note: Extends React and JavaScript/TypeScript guidelines. Also read AGENTS-GUIDELINES-REACT.md and AGENTS-GUIDELINES-JS.md.
 
 ## Component Boundaries & Routing
 - **Server Components by Default**: In the App Router (`app/`), all components are React Server Components (RSC) by default. Add `'use client'` only at leaf components that require browser APIs, event listeners (`onClick`, `onChange`), or React client state hooks (`useState`, `useEffect`).
@@ -16,4 +16,4 @@
 
 ## Verification
 - Build & check: `next build` (or `{pm} run build`).
-- Type and lint check: `next lint`.
+- Type and lint check: `{pm} run lint` (note: Next.js 16+ deprecates/removes `next lint` in favor of project ESLint/Biome scripts).
