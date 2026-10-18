@@ -17,6 +17,7 @@ operating guidance without prescribing a framework or stack.
 - [WordPress skills](#wordpress-skills)
 - [One-paste install for AI agents](#one-paste-install-for-ai-agents)
 - [Keeping skills fresh](#keeping-skills-fresh)
+- [Importing new skills](#importing-new-skills)
 - [Spec Kit resources](#spec-kit-resources)
 - [Install a skill](#install-a-skill)
 - [Design principles](#design-principles)
@@ -30,7 +31,7 @@ Ten skills in six categories. Each row links to the directory you copy.
 | Skill | Category | Use it for | Location |
 | --- | --- | --- | --- |
 | `speckit-init` | Development | Installing, initializing, documenting, and maintaining [GitHub Spec Kit](https://github.com/github/spec-kit) in an existing repository. | [`skills/development-skills/speckit-init`](skills/development-skills/speckit-init/) |
-| `coding-guidelines-generator` | Development | Auto-detecting a project's tech stack(s), generating tailored per-stack `AGENTS-GUIDELINES-{STACK}.md` files, and injecting a mandatory read-and-obey directive into AGENTS.md. | [`skills/development-skills/coding-guidelines-generator`](skills/development-skills/coding-guidelines-generator/) |
+| `coding-guidelines-generator` | Development | Deterministically detecting stack layers, confirming with the user, generating tailored `AGENTS-GUIDELINES-{STACK}.md` files, and linking them from `AGENTS.md`. | [`skills/development-skills/coding-guidelines-generator`](skills/development-skills/coding-guidelines-generator/) |
 | `linux-speed-optimizer` | System administration | Evidence-led, approval-gated Linux performance analysis and tuning, with per-change verification and documented rollback. | [`skills/system-administration-skills/linux-speed-optimizer`](skills/system-administration-skills/linux-speed-optimizer/) |
 | `tui-design` | UI/UX | Designing and restyling terminal interfaces: layout, color, keyboard and mouse navigation, dashboards, and focus management. | [`skills/UI-UX-skills/TUI-skills`](skills/UI-UX-skills/TUI-skills/) |
 | `readme-writing-skill` | Writing | Interviewing the project, then writing or rewriting a `README.md` with badges, working anchors, and a real quickstart. | [`skills/writing-skills/readme-writing-skill`](skills/writing-skills/readme-writing-skill/) |
@@ -121,6 +122,29 @@ Fetch https://raw.githubusercontent.com/administrakt0r/pro-skills-repo-administr
 and follow the prompt block inside it exactly. Work in a clone of
 https://github.com/administrakt0r/pro-skills-repo-administraktor, touch only one
 skill this run, and record the run in skillcheck-log.md as instructed.
+```
+
+## Importing new skills
+
+To safely expand the repository with established, high-value skills from vetted
+open-source repositories, use the incremental import prompt in
+[`new-skill-import.md`](new-skill-import.md).
+
+Each run selects exactly **one** high-value skill from vetted repositories
+(Anthropic, Vercel, AgentHouse, etc.), conducts a rigorous clean-room security
+scan for prompt injection and malicious payloads, enhances and modernizes the
+skill, places it in an isolated category subfolder under
+`skills/imported/<category>/`, indexes it in this `README.md`, and logs
+provenance in [`new-skill-import-log.md`](new-skill-import-log.md).
+
+Copy the prompt block from [`new-skill-import.md`](new-skill-import.md) into any
+agent with filesystem and web access:
+
+```text
+Fetch https://raw.githubusercontent.com/administrakt0r/pro-skills-repo-administraktor/main/new-skill-import.md
+and follow the prompt block inside it exactly. Work in a clone of
+https://github.com/administrakt0r/pro-skills-repo-administraktor, touch only one
+skill this run, and record the import in new-skill-import-log.md as instructed.
 ```
 
 ## Spec Kit resources

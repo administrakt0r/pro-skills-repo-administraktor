@@ -10,6 +10,7 @@ Keep the index sorted by skill name.
 
 | skill | path | runs | last_checked | status | notes |
 |-------|------|------|--------------|--------|-------|
+| coding-guidelines-generator | skills/development-skills/coding-guidelines-generator/ | 1 | 2026-10-18 | updated | Rebuilt as modular skill; addressed Codex review feedback (26 fixtures, byte-for-byte upsert) |
 | context-optimization | skills/AI-agent-skills/context-optimization/ | 1 | 2026-09-28 | updated | Cache/compaction provider mechanics added; Codex install path corrected |
 | linux-speed-optimizer | skills/system-administration-skills/linux-speed-optimizer/ | 0 | — | unaudited | Contains version-sensitive tuning commands; re-verify against current kernel/systemd docs |
 | pullrequests-review-merge | skills/git-skills/pullrequests-review-merge/ | 0 | — | unaudited | Not in this log until 2026-09-28 (added in commit 6417ad4 after the last run); frontmatter name is `pr-review-merge` |
@@ -154,3 +155,33 @@ Follow-ups:
 - `tui-design`, `linux-speed-optimizer`, `readme-generator`, `speckit-init`, and
   `pullrequests-review-merge` remain 0-run `unaudited`; next run picks by the
   standard tie-break (currently `linux-speed-optimizer`).
+
+### 2026-10-18 — coding-guidelines-generator (run #1)
+
+Verdict: updated
+
+Scope: `skills/development-skills/coding-guidelines-generator/` only. Prompt-injection scan: clean — no agent-directed instructions, hidden Unicode, encoded payloads, or remote-exec scripts.
+
+Changes:
+- Rebuilt skill into modular architecture: router-only `SKILL.md` (<150 lines), stdlib-only detector `scripts/detect_stack.py`, marker-based upsert script `scripts/upsert_section.py`, modular `references/` guides, and asset templates.
+- Addressed all automated Codex PR review feedback:
+  - Added all advertised detector branches in `detect_stack.py`: Java backend (`pom.xml`, non-Android Gradle), Shell (`*.sh`, `.shellcheckrc`), static HTML/CSS (`index.html`), and Generic fallback (`references/generic.md`).
+  - Scoped Android detection to target directory to eliminate duplicate module detections between root and `app/`.
+  - Added dynamic declared Python version extraction (`pyproject.toml`, `.python-version`, `setup.cfg`) and added Python 3.8/3.9 compatibility guidance in `references/python.md`.
+  - Fixed monorepo traversal truncation past `MAX_FILES_SCANNED` cap by decoupling file collection limits from directory enumeration.
+  - Constructed dynamic AGENTS.md links matching only detected stacks; converted `assets/agents-md-section.md` into a `{stack_links}` template.
+  - Rewrote relative cross-guideline notes in `references/nextjs.md`, `references/react.md`, and `references/wordpress.md` to reference generated `./AGENTS-GUIDELINES-*.md` files instead of unresolvable internal paths.
+  - Updated Next.js verification to use `{pm} run lint` and noted Next.js 16+ `next lint` deprecation.
+  - Added `--substitute KEY=VAL` (`-s`) to `upsert_section.py` for template substitution (e.g. `{pm}` -> `pnpm`).
+  - Refactored `apply_upsert` in `upsert_section.py` to ensure 100% byte-for-byte fidelity of existing user content outside markers.
+  - Expanded test suite `tests/run_tests.py` to 26 fixture test cases plus upsert lifecycle, substitution, and byte-preservation tests.
+
+Sources:
+- Official Next.js Documentation (2026-10-18): App Router, Server Actions, Next.js 15/16 caching and CLI updates
+- Official React Documentation (react.dev, 2026-10-18): Hooks rules, React 19 compiler & Server Components
+- Official WordPress Handbook (2026-10-18): Theme.json v3, Nonces, Capabilities, REST APIs
+- PEP 585 & PEP 604 (2026-10-18): Type hinting generics and union syntax compatibility
+
+Follow-ups:
+- Re-verify Python 3.14 features when shipped.
+
