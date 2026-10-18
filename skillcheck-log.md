@@ -10,6 +10,7 @@ Keep the index sorted by skill name.
 
 | skill | path | runs | last_checked | status | notes |
 |-------|------|------|--------------|--------|-------|
+| coding-guidelines-generator | skills/development-skills/coding-guidelines-generator/ | 0 | — | unaudited | Modular stack guideline generator with deterministic detector and marker upsert |
 | context-optimization | skills/AI-agent-skills/context-optimization/ | 1 | 2026-09-28 | updated | Cache/compaction provider mechanics added; Codex install path corrected |
 | linux-speed-optimizer | skills/system-administration-skills/linux-speed-optimizer/ | 0 | — | unaudited | Contains version-sensitive tuning commands; re-verify against current kernel/systemd docs |
 | pullrequests-review-merge | skills/git-skills/pullrequests-review-merge/ | 0 | — | unaudited | Not in this log until 2026-09-28 (added in commit 6417ad4 after the last run); frontmatter name is `pr-review-merge` |
