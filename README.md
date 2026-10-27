@@ -26,10 +26,11 @@ operating guidance without prescribing a framework or stack.
 
 ## Skills
 
-Ten skills in six categories. Each row links to the directory you copy.
+Eleven skills in six categories. Each row links to the directory you copy.
 
 | Skill | Category | Use it for | Location |
 | --- | --- | --- | --- |
+| `codebase-todoist` | Development | Scanning any codebase end-to-end, assessing completion state, researching comparable projects, and writing a ranked `TODOIST.md` with scoped, justified work items. | [`skills/development-skills/codebase-todoist`](skills/development-skills/codebase-todoist/) |
 | `speckit-init` | Development | Installing, initializing, documenting, and maintaining [GitHub Spec Kit](https://github.com/github/spec-kit) in an existing repository. | [`skills/development-skills/speckit-init`](skills/development-skills/speckit-init/) |
 | `coding-guidelines-generator` | Development | Deterministically detecting stack layers, confirming with the user, generating tailored `AGENTS-GUIDELINES-{STACK}.md` files, and linking them from `AGENTS.md`. | [`skills/development-skills/coding-guidelines-generator`](skills/development-skills/coding-guidelines-generator/) |
 | `linux-speed-optimizer` | System administration | Evidence-led, approval-gated Linux performance analysis and tuning, with per-change verification and documented rollback. | [`skills/system-administration-skills/linux-speed-optimizer`](skills/system-administration-skills/linux-speed-optimizer/) |
@@ -174,6 +175,7 @@ Skill locations by agent:
 | OpenCode | `~/.config/opencode/skills/` |
 | Codex | `~/.codex/skills/` |
 | Claude Code | `~/.claude/skills/` |
+| Antigravity (Gemini) | `~/.gemini/config/skills/` or `~/.agents/skills/` |
 | Other | That agent's documented skills directory |
 
 Each skill directory also holds a `README.md` with its scope, prerequisites,
