@@ -1,5 +1,5 @@
 ---
-name: codebase-todoist
+name: todoist
 description: Use when invoked on any codebase to perform a thorough scan of its structure, completion state, features, and gaps, then produce a ranked TODOIST.md of actionable work items with context, rationale, and competitive insight.
 ---
 
