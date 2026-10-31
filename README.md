@@ -1,9 +1,10 @@
 # Pro Skills Repository
 
 Agent-ready skills for repeatable technical workflows: Linux tuning, Spec Kit
-setup, terminal UI design, README writing, and context optimization. Each skill
-is a self-contained `SKILL.md` that gives an AI coding agent task-specific
-operating guidance without prescribing a framework or stack.
+setup, terminal UI design, Twig templating, FOSSBilling theme development,
+README writing, and context optimization. Each skill is a self-contained
+`SKILL.md` that gives an AI coding agent task-specific operating guidance
+without prescribing a framework or stack.
 
 [![License: MIT](https://img.shields.io/github/license/administrakt0r/pro-skills-repo-administraktor)](LICENSE)
 [![Last commit](https://img.shields.io/github/last-commit/administrakt0r/pro-skills-repo-administraktor)](https://github.com/administrakt0r/pro-skills-repo-administraktor/commits/main)
@@ -26,14 +27,16 @@ operating guidance without prescribing a framework or stack.
 
 ## Skills
 
-Ten skills in six categories. Each row links to the directory you copy.
+Twelve skills in six categories. Each row links to the directory you copy.
 
 | Skill | Category | Use it for | Location |
 | --- | --- | --- | --- |
 | `speckit-init` | Development | Installing, initializing, documenting, and maintaining [GitHub Spec Kit](https://github.com/github/spec-kit) in an existing repository. | [`skills/development-skills/speckit-init`](skills/development-skills/speckit-init/) |
 | `coding-guidelines-generator` | Development | Deterministically detecting stack layers, confirming with the user, generating tailored `AGENTS-GUIDELINES-{STACK}.md` files, and linking them from `AGENTS.md`. | [`skills/development-skills/coding-guidelines-generator`](skills/development-skills/coding-guidelines-generator/) |
+| `twig-development` | Development | Authoring, debugging, and optimizing Twig 3.x templates: strict-mode defense, layout inheritance contracts, component embedding, macros, and auto-escaping. | [`skills/development-skills/twig-development`](skills/development-skills/twig-development/) |
 | `linux-speed-optimizer` | System administration | Evidence-led, approval-gated Linux performance analysis and tuning, with per-change verification and documented rollback. | [`skills/system-administration-skills/linux-speed-optimizer`](skills/system-administration-skills/linux-speed-optimizer/) |
 | `tui-design` | UI/UX | Designing and restyling terminal interfaces: layout, color, keyboard and mouse navigation, dashboards, and focus management. | [`skills/UI-UX-skills/TUI-skills`](skills/UI-UX-skills/TUI-skills/) |
+| `fossbilling-theme-development` | UI/UX | Creating and debugging FOSSBilling themes: layout block contracts, API form fallbacks, strict Twig rules, flash message bridge, and lifecycle testing. | [`skills/UI-UX-skills/fossbilling-theme-development`](skills/UI-UX-skills/fossbilling-theme-development/) |
 | `readme-writing-skill` | Writing | Interviewing the project, then writing or rewriting a `README.md` with badges, working anchors, and a real quickstart. | [`skills/writing-skills/readme-writing-skill`](skills/writing-skills/readme-writing-skill/) |
 | `context-optimization` | AI agents | Fitting more work in a fixed context window: compaction, observation masking, cache-friendly layout, and sub-agent partitioning. | [`skills/AI-agent-skills/context-optimization`](skills/AI-agent-skills/context-optimization/) |
 | `wordpress` | WordPress | The end-to-end WordPress workflow: setup, themes, plugins, WooCommerce, performance, security, deployment, and the 7.0 feature set with MCP integration. | [`skills/wordpress-skills/wordpress`](skills/wordpress-skills/wordpress/) |
