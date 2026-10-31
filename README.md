@@ -1,7 +1,7 @@
 # Pro Skills Repository
 
-Agent-ready skills for repeatable technical workflows: Linux tuning, Spec Kit
-setup, terminal UI design, README writing, and context optimization. Each skill
+AI Agents ready, HUMAN made, currated set of skills,
+Each skill
 is a self-contained `SKILL.md` that gives an AI coding agent task-specific
 operating guidance without prescribing a framework or stack.
 
