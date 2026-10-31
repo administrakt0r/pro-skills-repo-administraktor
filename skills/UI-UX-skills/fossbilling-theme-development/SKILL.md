@@ -90,19 +90,20 @@ Key "X" for sequence/mapping does not exist in "<template>.html.twig" at line Y.
    {# GOOD #}
    <p>{{ item.description|default('') }}</p>
    ```
-3. **Avoid unshielded `??` null-coalescing in Twig on missing array keys**:
-   - In PHP, `$array['missing'] ?? 'default'` is safe.
-   - In Twig strict mode, `item.missing_key ?? 'default'` **still triggers a fatal error** before the `??` operator resolves because Twig attempts to fetch the key first!
-   - Always use `item.missing_key|default('default')`.
+3. **Distinguish `??` (Null Coalescing) from `|default`**:
+   - Both `??` and `|default` safely guard against undefined keys in Twig strict mode without fatal errors.
+   - **Use `??` when preserving valid `false` booleans or `0` matters** (e.g., `product.stock_control ?? false`, `settings.show_sidebar ?? true`). Because `|default` checks `empty()`, `false|default(true)` mistakenly evaluates to `true`!
+   - **Use `|default` when empty strings or missing collections should trigger fallback** (e.g., `item.description|default('')`, `items|default([])`).
+   - The fatal strict-mode crash (`Key "..." does not exist`) occurs when keys are accessed **directly without either `??` or `|default`** (e.g., `{{ item.description }}` or `{% if product.stock_control %}`).
 
 ### Common FOSSBilling Variables Cheat Sheet:
 | Variable | Safe Twig Usage | Notes |
 | :--- | :--- | :--- |
-| Cart item description | `item.description\|default('')` | Absent on domain items |
-| Product stock control | `product.stock_control\|default(false)` | Missing on custom products |
-| Product addons | `product.addons\|default([])` | Empty or non-existent if addons disabled |
-| Currency format | `item.total\|currency(item.currency)` | Fallback: `currency\|default(guest.cart_get_currency.code)` |
-| Request parameters | `request.param_name\|default('')` | Always guard user input |
+| Cart item description | `item.description\|default('')` | Absent on domain items; replaces empty strings |
+| Product stock control | `product.stock_control ?? false` | Preserves valid `false` boolean; `\|default(true)` would invert `false` |
+| Product addons | `product.addons ?? []` | Absent if addons disabled |
+| Currency format | `item.total\|currency(item.currency ?? guest.cart_get_currency.code)` | Preserves defined currency code |
+| Request parameters | `request.param_name\|default('')` | Guards absent request parameters |
 | Client logged check | `client ? true : false` | Check `client` object before `client.email` |
 
 ---

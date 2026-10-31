@@ -15,7 +15,7 @@ cp -R skills/development-skills/twig-development ~/.config/opencode/skills/twig-
 
 ## What it covers
 
-- **Defensive Templating & Strict Mode**: Safe property access, avoiding the fatal `??` null-coalescing trap under `strict_variables => true`, and `is defined` / `|default` best practices.
+- **Defensive Templating & Strict Mode**: Safe property access under `strict_variables => true`, distinguishing `??` (preserves valid `false`, `0`, and empty strings) from `|default` (replaces empty values), and guarding against unshielded direct access.
 - **Template Inheritance & Block Architecture**: Base layout contracts, calling `parent()`, and dynamic inheritance patterns.
 - **Component Composition**: Using `{% include %}` with isolated scope (`only`), `{% embed %}` for complex widget layouts, and `{% use %}` for horizontal block traits.
 - **Macros**: Authoring and consuming reusable markup components and attribute builders.

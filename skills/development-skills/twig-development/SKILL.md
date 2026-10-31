@@ -41,54 +41,63 @@ Twig provides hyphens (`-`) on any delimiter tag to strip surrounding whitespace
 
 ---
 
-## 2. Defensive Templating & The Strict Variables Trap
+## 2. Defensive Templating: Strict Mode & Null Coalescing (`??`) vs `|default`
 
-In production environments, Twig frequently runs with `'strict_variables' => true`. When strict variables are enforced, referencing an undefined key or missing property halts template rendering immediately.
+In production environments, Twig frequently runs with `'strict_variables' => true`. When strict variables are enforced, referencing an undefined key or missing property without a guard halts template rendering with a fatal `Twig\Error\RuntimeError: Key "..." does not exist`.
 
-### The Fatal `??` Null-Coalescing Trap
-In PHP, `$array['key'] ?? 'fallback'` safely handles undefined keys. **In Twig strict mode, `array.key ?? 'fallback'` causes a fatal crash:**
+### Direct Access vs Null Coalescing (`??`) vs `|default`
+A common misconception is that `??` fails in strict mode. In reality, Twig's `NullCoalesceExpression` explicitly checks whether the variable/attribute is defined and not null before resolving. Both `??` and `|default` safely guard against undefined keys, but they have critically different semantics regarding falsy values (`false`, `""`, `0`):
+
+| Construct | Handles Undefined Keys? | Preserves `false`? | Preserves `""`? | Preserves `0`? | Primary Use Case |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Direct Access (`item.key`)** | ❌ Fatal `RuntimeError` | N/A | N/A | N/A | Guaranteed properties only |
+| **Null Coalescing (`item.key ?? fallback`)** | ✅ Safe | ✅ Yes (`false`) | ✅ Yes (`""`) | ✅ Yes (`0`) | Booleans, optional overrides, flags |
+| **Default Filter (`item.key\|default(fallback)`)** | ✅ Safe | ❌ Replaced with fallback | ❌ Replaced with fallback | ✅ Kept (if numeric) | Display text, empty strings, missing arrays |
+
+### Preserving Valid Falsy Values
+Using `|default` on a boolean or empty-string value silently mutates business logic because `default` checks for `empty()`:
 
 ```twig
-{# ❌ FATAL IN STRICT MODE: Twig attempts to fetch "key" before evaluating "??" #}
-{{ user.missing_attribute ?? 'Guest' }}
-{# RuntimeError: Key "missing_attribute" for sequence/mapping does not exist #}
+{# Scenario: product.stock_control is explicitly set to boolean false #}
 
-{# ✅ SAFE: The |default filter intercepts missing keys at the AST level #}
-{{ user.missing_attribute|default('Guest') }}
+{# ❌ BUG: |default treats false as empty and replaces it with true! #}
+{% set stock_enabled = product.stock_control|default(true) %}
+{# stock_enabled is now TRUE instead of the intended FALSE #}
 
-{# ✅ SAFE: Explicit is defined test #}
-{% if user.missing_attribute is defined and user.missing_attribute is not empty %}
-    {{ user.missing_attribute }}
-{% else %}
-    Guest
-{% endif %}
+{# ✅ CORRECT: ?? only replaces null or undefined, preserving false #}
+{% set stock_enabled = product.stock_control ?? true %}
+{# stock_enabled is properly FALSE #}
+
+{# Scenario: user.custom_title is an empty string ("") indicating an intentional blank title #}
+{{ user.custom_title ?? 'Default Title' }}   {# Renders "" (preserves intentional blank) #}
+{{ user.custom_title|default('Default Title') }} {# Renders "Default Title" (replaces empty string) #}
 ```
 
 ### Essential Defensive Rules:
-1. **Shield All Dynamic and Heterogeneous Keys**:
-   Never assume optional keys exist on API responses, cart items, or polymorphic entities:
+1. **Never use unshielded direct property access on optional/heterogeneous mappings**:
+   Direct access (`{{ item.description }}`) is what causes fatal strict-mode crashes when rendering polymorphic cart items or dynamic API responses.
+2. **Choose `??` when preserving `false`, `0`, or `""` matters**:
+   - Boolean toggles: `product.stock_control ?? false`, `settings.show_sidebar ?? true`.
+   - Counts and offsets: `cart.discount_amount ?? 0`.
+3. **Choose `|default` when any empty value should trigger fallback**:
+   - Display labels: `item.description|default('No description provided')`.
+   - Fallback collections: `items|default([])`.
+4. **Chain Defaults for Deep Navigation**:
+   Both `??` and `|default` short-circuit gracefully across nested paths:
    ```twig
-   {{ item.description|default('') }}
-   {{ product.stock_control|default(false) }}
-   {{ request.search_query|default('') }}
-   ```
-2. **Chain Defaults for Deep Navigation**:
-   When traversing nested mappings where parent objects might be absent:
-   ```twig
+   {{ order.customer.billing_address.city ?? 'N/A' }}
    {{ order.customer.billing_address.city|default('N/A') }}
    ```
-   > [!NOTE]
-   > The `|default` filter short-circuits gracefully: if `order`, `customer`, or `billing_address` is undefined, `|default('N/A')` catches the error without throwing.
-3. **Guard Against Empty Traversables**:
-   Use Twig's native `{% for ... else %}` syntax rather than testing count:
+5. **Guard Against Empty Traversables**:
+   Use Twig's native `{% for ... else %}` syntax rather than checking count:
    ```twig
-   {% for item in cart.items|default([]) %}
+   {% for item in cart.items ?? [] %}
        <div class="cart-row">{{ item.title|default('Product') }}</div>
    {% else %}
        <p class="text-muted">{{ 'Your cart is empty.'|trans }}</p>
    {% endfor %}
    ```
-4. **Native Twig Tests Reference**:
+6. **Native Twig Tests Reference**:
    - `var is defined`: Checks if variable/key exists in context.
    - `var is empty`: True if `null`, `false`, `''`, `[]`, or empty `Countable`.
    - `var is null`: Strict null comparison.
@@ -338,7 +347,7 @@ $twig->addExtension(new SandboxExtension($policy, true)); // true = sandbox all 
 
 Before finalizing any Twig template changes:
 
-- [ ] **Strict Variables Audit**: Run with `strict_variables => true`. Verify no undefined keys or unshielded `??` operators exist.
+- [ ] **Strict Variables Audit**: Run with `strict_variables => true`. Verify all optional properties are guarded by either `??` (to preserve `false`/empty values) or `|default` (to replace empty values), preventing unshielded direct access.
 - [ ] **All Fallbacks Guarded**: Every dynamic variable has an appropriate `|default` filter.
 - [ ] **Master Layout Block Verification**: Verify all child templates extend base layouts that declare `{% block head %}` and `{% block js %}`.
 - [ ] **XSS Audit**: Confirm `|raw` is only applied to pre-sanitized strings; verify proper escaping context (`js`, `html_attr`) where applicable.

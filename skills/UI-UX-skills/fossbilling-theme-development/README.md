@@ -17,7 +17,7 @@ cp -R skills/UI-UX-skills/fossbilling-theme-development ~/.config/opencode/skill
 ## What it covers
 
 - **Master Layout Block Contracts**: Declaring standard extension blocks (`{% block head %}`, `{% block js %}`) so child template scripts are never silently dropped.
-- **Twig Strict Variables Guardrails**: Safe attribute and mapping access with `|default` filters; avoiding unshielded `??` operators on missing keys.
+- **Twig Strict Variables Guardrails**: Safe attribute and mapping access using `??` (to preserve legitimate `false` booleans) and `|default` filters to guard against unshielded direct access.
 - **Form Action & Routing Fallbacks**: Specifying explicit API endpoint actions on every `<form>` to prevent browser fallbacks to fatal native `POST /<page>` 404s.
 - **State Persistence & Flash Message Bridge**: Implementing `globalThis.flashMessage` with `sessionStorage` and `FOSSBilling.message` toasts.
 - **Cart & Heterogeneous Checkout**: Robust rendering for diverse product families (domain registrations, transfers, hosting packages, addons).
