@@ -13,7 +13,7 @@ Use this to find how a repo builds, lints, and tests itself. It is a map of wher
 | Node / JS / TS | `package.json`, lockfile (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `bun.lockb`), `tsconfig.json`, `.nvmrc` | `scripts` block; workspaces field for monorepos. Use the package manager the lockfile indicates. |
 | PHP | `composer.json`, `composer.lock`, `phpunit.xml`, `phpstan.neon`, `.php-cs-fixer.php`, `pint.json` | `scripts` block in composer.json; framework config (Laravel, Symfony, WordPress) |
 | Go | `go.mod`, `go.work`, `Makefile`, `.golangci.yml` | `go build ./...`, `go vet`, `go test ./...` only if go.mod/CI indicates |
-| Python | `pyproject.toml`, `setup.cfg`, `tox.ini`, `noxfile.py`, `requirements*.txt`, `Pipfile`, `.flake8`, `ruff.toml` | tool sections in pyproject; tox/nox envs |
+| Python | `pyproject.toml`, `setup.cfg`, `tox.ini`, `noxfile.py`, `requirements*.txt`, `Pipfile`, `.flake8`, `ruff.toml`, `uv.lock` | tool sections in pyproject; tox/nox envs |
 | Rust | `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`, `clippy.toml`, `rustfmt.toml` | cargo build/test/clippy/fmt as CI runs them |
 | Ruby | `Gemfile`, `Gemfile.lock`, `.rubocop.yml`, `Rakefile` | rake tasks, bundler |
 | Java / Kotlin / Android | `build.gradle(.kts)`, `settings.gradle(.kts)`, `gradlew`, `pom.xml`, `AndroidManifest.xml`, `lint.xml`, `detekt.yml`, `ktlint` config | Use the **Gradle/Maven wrapper** in the repo (`./gradlew`), not a system install. Android: unit tests and assemble/lint are usually runnable; instrumented tests need an emulator. |
@@ -32,6 +32,10 @@ Use this to find how a repo builds, lints, and tests itself. It is a map of wher
 ## Merge method hints
 
 Look at recent merged history: single-parent commits with `(#123)` suffix suggest squash; "Merge pull request" commits suggest merge commits; linear history without PR markers suggests rebase. Repo settings (allowed merge methods) override this if readable.
+
+**Merge queues (GitHub Enterprise / public org repos):** If the repo uses a merge queue (`Require merge queue` in branch protection), check whether CI workflows trigger on the `merge_group` event in addition to `pull_request`. If only `pull_request` is present, queue checks will stall — note this in the report but do not modify the CI config unilaterally. Merge queue membership is confirmed when `gh pr view` shows "In merge queue".
+
+**Never use `gh pr merge --admin` or equivalent admin-bypass API calls.** An agent running unattended must not bypass required status checks, required reviews, or CODEOWNERS — even when the token has the privilege. If the only path to merging is an admin override, classify the PR BLOCKED and explain why.
 
 ## Safety reminder
 

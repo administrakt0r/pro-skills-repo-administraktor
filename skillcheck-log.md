@@ -13,7 +13,7 @@ Keep the index sorted by skill name.
 | coding-guidelines-generator | skills/development-skills/coding-guidelines-generator/ | 1 | 2026-10-18 | updated | Rebuilt as modular skill; addressed Codex review feedback (26 fixtures, byte-for-byte upsert) |
 | context-optimization | skills/AI-agent-skills/context-optimization/ | 1 | 2026-09-28 | updated | Cache/compaction provider mechanics added; Codex install path corrected |
 | linux-speed-optimizer | skills/system-administration-skills/linux-speed-optimizer/ | 1 | 2026-11-01 | updated | Staleness fixes: kernel-bore→kernel-cachyos/scx for Fedora/openSUSE; XanMod MOK guidance clarified; systemd-boot regeneration step added; earlyoom dual-threshold note added |
-| pullrequests-review-merge | skills/git-skills/pullrequests-review-merge/ | 0 | — | unaudited | Not in this log until 2026-09-28 (added in commit 6417ad4 after the last run); frontmatter name is `pr-review-merge` |
+| pullrequests-review-merge | skills/git-skills/pullrequests-review-merge/ | 1 | 2026-11-02 | updated | Description fixed to start with "Use when"; `gh pr merge --admin` ban made explicit; merge queue + `uv.lock` added to stack-discovery |
 | readme-generator | skills/writing-skills/readme-writing-skill/ | 0 | — | unaudited | Directory name is `readme-writing-skill`, frontmatter name is `readme-generator` |
 | speckit-init | skills/development-skills/speckit-init/ | 0 | — | unaudited | Pins commands to github/spec-kit — check upstream rewrites before trusting commands |
 | tui-design | skills/UI-UX-skills/TUI-skills/ | 0 | — | unaudited | Imported before this log existed; no audit run recorded |
@@ -28,6 +28,65 @@ and audited during import (prompt-injection scan: clean). That import audit is
 recorded below as run #1 for each.
 
 ## Log entries
+
+### 2026-11-02 — pullrequests-review-merge (run #1)
+
+Verdict: updated
+
+Scope: `skills/git-skills/pullrequests-review-merge/SKILL.md` and
+`skills/git-skills/pullrequests-review-merge/references/stack-discovery.md`.
+Prompt-injection scan: **clean** — no agent-directed instructions, hidden Unicode,
+encoded payloads, or remote-exec references found. Hard rule #1 already explicitly
+addresses injection via PR content (treating it as data, not instructions).
+
+Skill selection rationale: alphabetically first among four skills with `unaudited`
+status (pullrequests-review-merge < readme-generator < speckit-init < tui-design).
+
+Changes:
+
+- **STRUCTURE (E) — description fixed to start with "Use when"**: The frontmatter
+  `description` began with "Autonomous, safety-first…", violating the README's
+  checklist requirement (item 5: "starts with a trigger phrase such as 'Use when'").
+  Reworded to open with "Use when the user mentions…" while preserving the full
+  trigger list and adding an explicit exclusion clause ("Excludes PR creation,
+  branch naming, or release workflows.").
+
+- **SECURITY (A) — `gh pr merge --admin` explicitly banned in hard rules**: Hard
+  rule #2 already prohibited admin overrides generically, but the GitHub CLI's
+  `--admin` flag (which bypasses branch protection, required status checks, and
+  CODEOWNERS) was not named. Security research confirms this is a specific, named
+  risk for unattended AI agents. Added: "This includes `gh pr merge --admin` and
+  equivalent API calls that bypass required checks — do not use them even if the
+  token has the privilege."
+
+- **STALENESS (B) — merge queue guidance added to `stack-discovery.md`**: GitHub's
+  merge queue feature (GA 2023, widely adopted 2024–2025 for org repos) requires
+  CI workflows to trigger on the `merge_group` event in addition to `pull_request`.
+  Without this guidance an agent reviewing CI config would miss a common setup gap.
+  Added a "Merge queues" paragraph to the Merge method hints section covering: how
+  to detect merge queue use, the `merge_group` CI trigger requirement, how to
+  observe a PR's queue status via `gh pr view`, and the no-admin-bypass rule
+  reinforced at point-of-use.
+
+- **STALENESS (B) — `uv.lock` added to Python stack manifest list**: `uv` is now
+  a primary Python package manager (2024+) and `uv.lock` is its lockfile. Added
+  alongside `pyproject.toml` and other Python manifests in the stack discovery
+  table.
+
+Sources:
+- https://cli.github.com/manual/gh_pr_merge (GitHub CLI reference; verified 2026-11)
+- https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/incorporating-changes-into-your-project/merging-a-pull-request-with-a-merge-queue (GitHub Merge Queue docs; 2023–2024)
+- https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue (merge_group trigger; 2024)
+- https://owasp.org/www-project-top-10-for-large-language-model-applications/ (OWASP LLM Top 10: indirect prompt injection; 2024)
+- https://github.blog/ (AI PR review risks, gh pr merge --admin bypass risks; 2024–2025)
+- https://docs.astral.sh/uv/concepts/projects/layout/#the-lockfile (uv.lock lockfile; 2024)
+
+Follow-ups:
+- `readme-generator` (skills/writing-skills/readme-writing-skill/): 0 runs, unaudited.
+  Next in the queue alphabetically.
+- `speckit-init`: 0 runs, pins commands to `github/spec-kit` — verify commands still
+  match current upstream before next run.
+- `tui-design`: 0 runs, imported before log existed — full first audit needed.
 
 ### 2026-09-27 — wordpress, wordpress-theme-development, wordpress-plugin-development, wordpress-woocommerce-development (run #1, import audit)
 
