@@ -26,7 +26,7 @@ operating guidance without prescribing a framework or stack.
 
 ## Skills
 
-Twelve skills in six categories. Each row links to the directory you copy.
+Thirteen skills in six categories, plus one imported skill. Each row links to the directory you copy.
 
 | Skill | Category | Use it for | Location |
 | --- | --- | --- | --- |
@@ -43,6 +43,7 @@ Twelve skills in six categories. Each row links to the directory you copy.
 | `wordpress-theme-development` | WordPress | Themes from scratch: `theme.json` v3, template hierarchy, block patterns, navigation overlays, breadcrumbs, and block styles. | [`skills/wordpress-skills/wordpress-theme-development`](skills/wordpress-skills/wordpress-theme-development/) |
 | `wordpress-plugin-development` | WordPress | Plugins: hooks, admin UI, REST endpoints, Abilities API, AI Client integration, PHP-only blocks, and security hardening. | [`skills/wordpress-skills/wordpress-plugin-development`](skills/wordpress-skills/wordpress-plugin-development/) |
 | `wordpress-woocommerce-development` | WordPress | WooCommerce stores: products, payments, shipping, checkout, custom product types, order automation, and store performance. | [`skills/wordpress-skills/wordpress-woocommerce-development`](skills/wordpress-skills/wordpress-woocommerce-development/) |
+| `github-actions-templates` | Imported / Infrastructure | Creating, auditing, and hardening GitHub Actions CI/CD workflows: test automation, Docker builds, Kubernetes deployments, security scanning, matrix builds, reusable workflows, and approval-gated production releases. | [`skills/imported/infrastructure-skills/github-actions-templates`](skills/imported/infrastructure-skills/github-actions-templates/) |
 
 The name an agent registers comes from each `SKILL.md` frontmatter, which can
 differ from the directory name. `readme-writing-skill` registers as
