@@ -1,10 +1,9 @@
 # Pro Skills Repository
 
-Agent-ready skills for repeatable technical workflows: Linux tuning, Spec Kit
-setup, terminal UI design, Twig templating, FOSSBilling theme development,
-README writing, and context optimization. Each skill is a self-contained
-`SKILL.md` that gives an AI coding agent task-specific operating guidance
-without prescribing a framework or stack.
+AI Agents ready, HUMAN made, currated set of skills,
+Each skill
+is a self-contained `SKILL.md` that gives an AI coding agent task-specific
+operating guidance without prescribing a framework or stack.
 
 [![License: MIT](https://img.shields.io/github/license/administrakt0r/pro-skills-repo-administraktor)](LICENSE)
 [![Last commit](https://img.shields.io/github/last-commit/administrakt0r/pro-skills-repo-administraktor)](https://github.com/administrakt0r/pro-skills-repo-administraktor/commits/main)
@@ -31,6 +30,7 @@ Twelve skills in six categories. Each row links to the directory you copy.
 
 | Skill | Category | Use it for | Location |
 | --- | --- | --- | --- |
+| `todoist` | Development | Scanning any codebase end-to-end, assessing completion state, researching comparable projects, and writing a ranked `TODOIST.md` with scoped, justified work items. | [`skills/development-skills/todoist`](skills/development-skills/todoist/) |
 | `speckit-init` | Development | Installing, initializing, documenting, and maintaining [GitHub Spec Kit](https://github.com/github/spec-kit) in an existing repository. | [`skills/development-skills/speckit-init`](skills/development-skills/speckit-init/) |
 | `coding-guidelines-generator` | Development | Deterministically detecting stack layers, confirming with the user, generating tailored `AGENTS-GUIDELINES-{STACK}.md` files, and linking them from `AGENTS.md`. | [`skills/development-skills/coding-guidelines-generator`](skills/development-skills/coding-guidelines-generator/) |
 | `twig-development` | Development | Authoring, debugging, and optimizing Twig 3.x templates: strict-mode defense, layout inheritance contracts, component embedding, macros, and auto-escaping. | [`skills/development-skills/twig-development`](skills/development-skills/twig-development/) |
@@ -177,6 +177,7 @@ Skill locations by agent:
 | OpenCode | `~/.config/opencode/skills/` |
 | Codex | `~/.codex/skills/` |
 | Claude Code | `~/.claude/skills/` |
+| Antigravity (Gemini) | `~/.gemini/config/skills/` or `~/.agents/skills/` |
 | Other | That agent's documented skills directory |
 
 Each skill directory also holds a `README.md` with its scope, prerequisites,
