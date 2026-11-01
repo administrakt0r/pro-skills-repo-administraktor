@@ -8,14 +8,16 @@ description: >-
 
 ## Overview
 
-Specialized workflow for creating WordPress plugins with proper architecture, hooks system, admin interfaces, REST API endpoints, and security practices. Now includes WordPress 7.0 features for modern plugin development.
+Specialized workflow for creating WordPress plugins with proper architecture, hooks system, admin interfaces, REST API endpoints, and security practices. Covers WordPress 7.0 and 7.1 features for modern plugin development.
 
-## WordPress 7.0 Plugin Development
+> **Current WordPress release:** 7.1.4 "Mary Lou" (August 19, 2026). Minimum PHP 7.4; PHP 8.2+ recommended for new projects.
+
+## WordPress 7.0 + 7.1 Plugin Development
 
 ### Key Features for Plugin Developers
 
-1. **Real-Time Collaboration (RTC) — did not ship in 7.0**
-   - Planned as Yjs-based CRDT simultaneous editing; removed from the 7.0 release on May 8, 2026 (race conditions, server load, fuzz-test bugs)
+1. **Real-Time Collaboration (RTC) — did not ship in 7.0 or 7.1**
+   - Planned as Yjs-based CRDT simultaneous editing; removed from the 7.0 release on May 8, 2026 (race conditions, server load, fuzz-test bugs) and deferred again from 7.1
    - Do not build against RTC APIs in core. Expect a feature-plugin phase first
    - **Forward-compatible practice**: register post meta with `show_in_rest => true` so your data is RTC-ready when the feature lands
 
@@ -24,19 +26,30 @@ Specialized workflow for creating WordPress plugins with proper architecture, ho
    - Settings > Connectors admin screen
    - Works with OpenAI, Claude, Gemini, Ollama (via provider plugins)
 
-3. **Abilities API**
+3. **Abilities API (expanded in 7.1)**
    - Declare plugin capabilities for AI agents
    - REST API: `/wp-json/abilities/v1/manifest`
    - Official MCP Adapter (`wordpress/mcp-adapter`) exposes Abilities as MCP tools
+   - 7.1 expanded the API further for richer external-application permission discovery
 
-4. **DataViews & DataForm**
-   - Modern admin interfaces
-   - Replaces WP_List_Table patterns
+4. **DataViews & DataForm (7.1 updates)**
+   - Modern admin interfaces replacing WP_List_Table patterns
    - Built-in validation
+   - **7.1 change:** `__next40pxDefaultSize` prop is now deprecated and is a no-op — all form controls default to 40px height unconditionally
+   - **7.1 change:** The `css` prop on layout components no longer applies styles (Emotion → SCSS Modules migration); use `className` or `style` instead
 
 5. **PHP-Only Blocks**
    - Register blocks without JavaScript
    - Auto-generated Inspector controls
+
+6. **SVG Icon API (new in 7.1)**
+   - Register custom icon collections and individual SVGs via `wp_register_icon_collection()` and `wp_register_icon()`
+   - Icons appear in the `core/icon` block picker automatically
+   - Exposed read-only via REST at `wp/v2/icons` and `wp/v2/icon-collections`
+
+7. **Enforced Iframed Post Editor (7.1)**
+   - The post editor now runs unconditionally inside an iframe (Block API v3 enforcement)
+   - In 7.0 it was opt-in; in 7.1 it is always active — test all custom blocks and admin scripts accordingly
 
 ## When to Use This Workflow
 
@@ -110,26 +123,49 @@ License: GPL2+
 4. Add settings sections/fields
 5. Create admin notices
 
-#### WordPress 7.0 Admin Considerations
+#### WordPress 7.1 Admin Considerations
+- Form controls default to 40px height; `__next40pxDefaultSize` is deprecated (no-op)
+- Replace any `css` prop usage on layout components with `className` or `style`
+- DataViews adds server-side view-config injection (REST filters); start view state from server defaults when available
 - Test with new admin color scheme
 - Consider DataViews for data displays
 - Implement view transitions
 - Use new validation patterns
 
-#### DataViews Example
+#### DataViews Example (WP 7.1)
 ```javascript
 import { DataViews } from '@wordpress/dataviews';
+import { useState, useMemo } from '@wordpress/element';
 
-const MyPluginDataView = () => {
-    const data = [/* records */];
-    const fields = [
-        { id: 'title', label: 'Title', sortable: true },
-        { id: 'status', label: 'Status', filterBy: true }
-    ];
-    const view = {
+// DataViews is a controlled component: always wire view state via onChangeView.
+// In 7.1 the __next40pxDefaultSize prop is a no-op; 40px height is the default.
+// Do not use the `css` prop on layout components — use `className` or `style`.
+const MyPluginDataView = ({ allData }) => {
+    const [view, setView] = useState({
         type: 'table',
         perPage: 10,
-        sort: { field: 'title', direction: 'asc' }
+        sort: { field: 'title', direction: 'asc' },
+        fields: ['title', 'status'],
+    });
+
+    const fields = [
+        { id: 'title', label: 'Title', type: 'text', enableGlobalSearch: true },
+        { id: 'status', label: 'Status', type: 'text', enableSorting: false },
+    ];
+
+    // Compute the visible slice locally; in real use, fetch from REST with `view` params.
+    const { data, paginationInfo } = useMemo(() => {
+        const total = allData.length;
+        const start = (view.page ? view.page - 1 : 0) * view.perPage;
+        return {
+            data: allData.slice(start, start + view.perPage),
+            paginationInfo: { totalItems: total, totalPages: Math.ceil(total / view.perPage) },
+        };
+    }, [allData, view]);
+
+    const defaultLayouts = {
+        table: {},
+        grid: {},
     };
 
     return (
@@ -137,7 +173,9 @@ const MyPluginDataView = () => {
             data={data}
             fields={fields}
             view={view}
-            onChangeView={handleViewChange}
+            onChangeView={setView}       // Required: keeps the component controlled
+            defaultLayouts={defaultLayouts}
+            paginationInfo={paginationInfo}
         />
     );
 };
@@ -392,6 +430,32 @@ if (function_exists('register_block_type')) {
 }
 ```
 
+#### SVG Icon API (WordPress 7.1)
+Register custom icon collections so they appear in the `core/icon` block picker and can be rendered via PHP:
+
+```php
+// Register the collection first (on init)
+add_action('init', function() {
+    wp_register_icon_collection('my-plugin-icons', [
+        'label'       => __('My Plugin Icons', 'my-plugin'),
+        'description' => __('Brand icons for My Plugin', 'my-plugin'),
+    ]);
+
+    // Inline SVG — paths are sanitized through wp_kses; use fill="currentColor"
+    // so icons inherit color from the surrounding context.
+    wp_register_icon('my-plugin-icons/sparkle', [
+        'label'   => __('Sparkle', 'my-plugin'),
+        'content' => '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>',
+    ]);
+});
+
+// Render anywhere in PHP (returns sanitized SVG markup)
+echo wp_get_icon('my-plugin-icons/sparkle', ['size' => 24]);
+```
+
+- Icons are also exposed via REST at `wp/v2/icons` and `wp/v2/icon-collections` (read-only)
+- `wp_unregister_icon()` / `wp_unregister_icon_collection()` available for cleanup
+
 #### Collaboration (when the feature plugin is active)
 ```javascript
 // Only if you have the collaboration feature plugin active and must opt a
@@ -414,11 +478,14 @@ addFilter(
 4. Test with WordPress test suite
 5. Configure CI
 
-#### WordPress 7.0 Testing Priorities
+#### WordPress 7.1 Testing Priorities
+- **Iframed editor is now enforced unconditionally** (was opt-in in 7.0): test all custom blocks and any script that touches `document` or `window` — they must target `element.ownerDocument`, not the parent frame's global
+- Avoid `document.querySelector()` inside block JS; use `element.ownerDocument` or `element.getRootNode()` for iframe-safe DOM queries
+- Verify `vw`/`vh` CSS units inside block editor styles — they now resolve against the iframe canvas, not the browser window
 - Test with the collaboration feature plugin active if you support it
 - Verify AI connector functionality
-- Validate DataViews integration
-- Test Interactivity API with watch()
+- Validate DataViews integration (note `__next40pxDefaultSize` is a no-op; `css` prop removed)
+- Test Interactivity API with `watch()` (import from `@wordpress/interactivity`, not `@wordpress/signals`)
 
 #### WordPress.org Plugin Check (PCP) Compliance
 - Submitting to WordPress.org triggers automated checks using the official **Plugin Check (PCP)** plugin (`WordPress/plugin-check`), running WordPressCS, VIPCS, and PluginCheck sniffs.
@@ -483,16 +550,18 @@ plugin-name/
 └── vendor/
 ```
 
-## WordPress 7.0 Compatibility Checklist
+## WordPress 7.0 + 7.1 Compatibility Checklist
 
-- [ ] PHP 7.4+ requirement documented
+- [ ] PHP 7.4+ requirement documented (PHP 8.2+ recommended for new projects)
 - [ ] Post meta registered with `show_in_rest => true`
 - [ ] Meta boxes migrated to block-based UIs
 - [ ] AI Connector integration tested
 - [ ] Abilities API registered (if applicable)
-- [ ] DataViews integration tested (if applicable)
-- [ ] Interactivity API uses `watch()` not `effect`
-- [ ] Tested with iframed editor
+- [ ] DataViews integration tested: `__next40pxDefaultSize` removed, `css` prop replaced with `className`/`style`, `onChangeView` wired to `useState` setter
+- [ ] Interactivity API uses `watch()` from `@wordpress/interactivity` (not `effect` from `@wordpress/signals`)
+- [ ] **Iframed editor (7.1 — now unconditional):** no `document.querySelector()` in block JS; DOM queries use `element.ownerDocument`; `vw`/`vh` units reviewed; styles enqueued via `editor_style` in `block.json`
+- [ ] SVG icons registered via `wp_register_icon_collection()` / `wp_register_icon()` if providing custom icons (7.1)
+- [ ] Block API v3 declared in `block.json` (`"apiVersion": 3`) for all custom blocks
 - [ ] Legacy meta boxes avoided where block-based UIs are feasible
 
 ## Quality Gates

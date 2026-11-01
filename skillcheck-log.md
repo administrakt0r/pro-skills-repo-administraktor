@@ -17,9 +17,9 @@ Keep the index sorted by skill name.
 | readme-generator | skills/writing-skills/readme-writing-skill/ | 0 | — | unaudited | Directory name is `readme-writing-skill`, frontmatter name is `readme-generator` |
 | speckit-init | skills/development-skills/speckit-init/ | 0 | — | unaudited | Pins commands to github/spec-kit — check upstream rewrites before trusting commands |
 | tui-design | skills/UI-UX-skills/TUI-skills/ | 0 | — | unaudited | Imported before this log existed; no audit run recorded |
-| wordpress | skills/wordpress-skills/wordpress/ | 1 | 2026-09-27 | updated | Import audit: RTC claims corrected, AI Client usage fixed, MCP section added |
-| wordpress-plugin-development | skills/wordpress-skills/wordpress-plugin-development/ | 1 | 2026-09-27 | updated | Import audit: RTC claims corrected, fluent-builder misuse fixed, MCP exposure guidance added |
-| wordpress-theme-development | skills/wordpress-skills/wordpress-theme-development/ | 1 | 2026-09-27 | updated | Import audit: breadcrumb filters, navigation-overlay APIs, pattern format corrected |
+| wordpress | skills/wordpress-skills/wordpress/ | 2 | 2026-11-01 | updated | Safety: `__return_true` REST example annotated with scope/warning; Staleness: FID replaced with INP (retired March 2024) |
+| wordpress-plugin-development | skills/wordpress-skills/wordpress-plugin-development/ | 2 | 2026-11-01 | updated | 7.1 update: DataViews fix (undefined handleViewChange→useState, missing paginationInfo/defaultLayouts); iframe enforced; SVG Icon API added; __next40pxDefaultSize no-op noted |
+| wordpress-theme-development | skills/wordpress-skills/wordpress-theme-development/ | 2 | 2026-11-01 | updated | 7.1 update: viewport/responsive styling in theme.json, Tabs+Playlist blocks, iframed editor enforced, SVG Icon API, client-side media notes, schema URL updated |
 | wordpress-woocommerce-development | skills/wordpress-skills/wordpress-woocommerce-development/ | 1 | 2026-09-27 | updated | Import audit: callback-name bug fixed, PII/AI examples rewritten deterministic-first, rate limiting added |
 
 Provenance note: the four `wordpress*` skills were imported from
@@ -256,3 +256,211 @@ Follow-ups:
 - `pullrequests-review-merge`, `readme-generator`, `speckit-init`, and
   `tui-design` remain 0-run `unaudited`; next run picks by tie-break
   (alphabetically: `pullrequests-review-merge`).
+
+### 2026-11-01 — wordpress (run #2)
+
+Verdict: updated
+
+Scope: `skills/wordpress-skills/wordpress/SKILL.md` only (the entry/router skill).
+Prompt-injection scan: **clean** — no agent-directed instructions, hidden Unicode,
+encoded payloads, or remote-exec references found.
+
+Skill selection rationale: user requested WordPress skill enhancement; all four
+WordPress skills are tied at run #1 / 2026-09-27. Alphabetically, `wordpress`
+(the router skill) comes first among the four.
+
+Changes:
+
+- **§ Custom REST API Endpoint — safety annotation**: The example used
+  `'permission_callback' => '__return_true'` with no comment or context. The
+  skill's own MCP security section explicitly prohibits `__return_true` on
+  state-changing abilities, but gave no guidance in the REST endpoint example (a
+  common place developers copy from). Added four inline comment lines explaining
+  when `__return_true` is acceptable (public read-only data only), what to use
+  instead (a `current_user_can()` check), and that it must never appear on
+  POST/PUT/DELETE routes or routes returning private data. No functionality changed;
+  the GET example itself is valid for a public book list.
+
+- **§ Performance Checklist — FID retired → INP**: The checklist item
+  `- [ ] First Input Delay < 100ms` is stale. Google officially retired FID as a
+  Core Web Vital on March 12, 2024 and replaced it with **Interaction to Next
+  Paint (INP)** — threshold ≤ 200ms, measuring all interactions throughout the
+  visit (not just the first). Replaced the FID item with the INP equivalent and
+  added a parenthetical noting FID's retirement date so readers understand why.
+
+Sources:
+- https://web.dev/articles/inp (Google web.dev, INP overview; FID retirement
+  confirmed March 12, 2024; verified 2026-11)
+- https://corewebvitals.io/core-web-vitals/inp-vs-fid (INP vs FID comparison;
+  thresholds; 2024/2026)
+- https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-custom-endpoints/
+  (WordPress developer docs, REST endpoint registration; verified 2026-11)
+- https://wordpress.org (WordPress 7.0 "Armstrong" release notes; May 20, 2026)
+
+Follow-ups:
+- **`wordpress-plugin-development`**: The `DataViews` example (Phase 4) references
+  undefined `handleViewChange` — should be a `useState`-driven setter. Makes the
+  example non-functional. Fix on the next run targeting that skill.
+- **`wordpress-plugin-development`**: `gemini-2-pro` used as a model name string
+  in `using_model_preference()` — should be annotated as illustrative.
+- **`wordpress-woocommerce-development` §8 Testing**: "Verify collaboration features"
+  remains in Phase 8 testing checklist even though RTC is noted as not shipped.
+  Minor inconsistency; flag for next pass.
+- Four 0-run unaudited skills remain: `pullrequests-review-merge`,
+  `readme-generator`, `speckit-init`, `tui-design`. Alphabetically next:
+  `pullrequests-review-merge`.
+
+### 2026-11-01 — wordpress-plugin-development (run #2)
+
+Verdict: updated
+
+Scope: `skills/wordpress-skills/wordpress-plugin-development/SKILL.md` only.
+Prompt-injection scan: **clean** — no agent-directed instructions, hidden Unicode,
+encoded payloads, or remote-exec references found.
+
+Skill selection rationale: user requested sequential WordPress skill enhancement;
+alphabetically next after `wordpress` among the four. User confirmed latest
+WordPress is 7.1.4 ("Mary Lou", released August 19, 2026).
+
+Changes:
+
+- **Overview banner**: Added release callout — WordPress 7.1.4 "Mary Lou",
+  August 19, 2026; PHP 8.2+ recommended for new projects (was silent on version).
+
+- **RTC note extended**: "did not ship in 7.0" → "did not ship in 7.0 or 7.1"
+  (RTC was deferred again from the 7.1 cycle).
+
+- **DataViews example — code bug fixed (critical)**: The example called
+  `onChangeView={handleViewChange}` where `handleViewChange` was never defined —
+  an uncaught ReferenceError at runtime. Rewrote the example as a proper
+  controlled component using `useState(setView)` from `@wordpress/element`,
+  with a `useMemo`-based pagination slice, and all required props populated:
+  `paginationInfo`, `defaultLayouts`. Added inline comments explaining
+  the controlled-component requirement.
+
+- **DataViews 7.1 breaking changes documented**:
+  - `__next40pxDefaultSize` is now a deprecated no-op (40px is the unconditional
+    default for all form controls); removed from checklist as an opt-in step.
+  - `css` prop on layout components no longer works (Emotion → SCSS Modules
+    migration); must use `className` or `style`.
+  - Server-side view-config injection via REST filters now available.
+
+- **Iframed editor 7.1 enforcement**: In 7.0 the iframe was opt-in; in 7.1 it is
+  unconditional. Added detailed guidance: avoid `document.querySelector()` inside
+  block JS (use `element.ownerDocument` or `element.getRootNode()`); `vw`/`vh`
+  units resolve against the iframe canvas; styles must be enqueued via
+  `editor_style` in `block.json`. Added to features list, testing priorities,
+  and compatibility checklist.
+
+- **SVG Icon API (new in 7.1)**: Added a full PHP example for
+  `wp_register_icon_collection()` / `wp_register_icon()` / `wp_get_icon()` /
+  `wp_unregister_icon()`, with notes on `fill="currentColor"` for theme-color
+  inheritance and the conservative `wp_kses` sanitizer constraint.
+  Added to features list and compatibility checklist.
+
+- **Interactivity API import path clarified**: Testing priority updated to
+  explicitly say `import { watch } from '@wordpress/interactivity'` (not the
+  old internal `@wordpress/signals` path that was removed).
+
+- **Abilities API 7.1 expansion noted**: brief mention that 7.1 expanded the
+  API for richer external-application permission discovery.
+
+- **Compatibility checklist updated**: Added `block.json` `"apiVersion": 3`
+  requirement; tightened DataViews entry; added iframed-editor and SVG icon items.
+
+Sources:
+- https://wordpress.org/news/2026/08/mary-lou/ (WordPress 7.1 "Mary Lou" release
+  announcement; August 19, 2026)
+- https://make.wordpress.org/core/ (WordPress 7.1 dev notes — iframed editor
+  enforcement, DataViews Emotion→SCSS, 40px controls; 2026-08)
+- https://developer.wordpress.org/block-editor/reference-guides/packages/packages-dataviews/
+  (DataViews component reference; verified 2026-11)
+- https://developer.wordpress.org/block-editor/how-to-guides/iframed-editor/
+  (iframed editor compatibility guide; verified 2026-11)
+- https://make.wordpress.org/core/2026/ (SVG Icon API: wp_register_icon_collection,
+  wp_register_icon, wp_get_icon; REST endpoints; kses sanitizer notes; 2026-08)
+
+Follow-ups:
+- `wordpress-theme-development`: also mentions iframed editor as opt-in (7.0
+  framing); needs same enforcement update, plus 7.1 new blocks (Tabs, Audio
+  Playlist), per-device responsive controls, and client-side media processing notes.
+- `wordpress-woocommerce-development`: RTC "Verify collaboration features" in Phase
+  8 testing checklist still present; also needs 7.1.4 version banner.
+- After all four WordPress skills are updated, consider a cross-skill consistency
+  pass to ensure version references are unified.
+
+### 2026-11-01 — wordpress-theme-development (run #2)
+
+Verdict: updated
+
+Scope: `skills/wordpress-skills/wordpress-theme-development/SKILL.md` only.
+Prompt-injection scan: **clean** — no agent-directed instructions, hidden Unicode,
+encoded payloads, or remote-exec references found.
+
+Skill selection rationale: third WordPress skill in alphabetical sequence; user
+confirmed sequential update pass. WordPress 7.1.4 "Mary Lou" is latest.
+
+Changes:
+
+- **Overview + version banner**: Added release callout (7.1.4 "Mary Lou",
+  August 19, 2026; PHP 8.2+ recommended). Description frontmatter updated to
+  mention 7.0/7.1.
+
+- **Features section restructured**: Split 7.0 vs 7.1 features explicitly.
+  Added seven new 7.1 entries: new blocks (Tabs, Playlist), per-device
+  responsive styling, client-side media processing, enforced iframed editor,
+  SVG Icon API, and the viewport schema key.
+
+- **theme.json schema URL corrected**: Was `schemas.wp.org/trunk/theme.json`
+  (tracks unstable HEAD). Updated to version-pinned
+  `schemas.wp.org/wp/7.1/theme.json`. Using `trunk` in production is incorrect
+  as schema shape changes without notice.
+
+- **`settings.viewport` + responsive block styling added to theme.json example**:
+  Added `"viewport": {"mobile":"480px","tablet":"782px"}` to `settings`, and
+  a `"@mobile"` override under `styles.blocks.core/group` as a concrete example.
+  Added a callout box explaining compilation rules, the no-`@desktop` convention,
+  and validation/collision behaviour.
+
+- **Template Considerations updated (7.1 iframe enforcement)**: Replaced
+  "Test with iframed editor" with actionable guidance: enqueue editor styles via
+  `editor_style` / `add_theme_support('editor-styles')`; avoid `vw`/`vh` in block
+  CSS or prefer `cqw`/`cqh`; added to testing checklist.
+
+- **New Tabs block pattern example added**: Full `patterns/product-tabs.php` with
+  the correct `core/tabs → core/tab-list → core/tab-panels → core/tab-panel`
+  hierarchy. Without the full child chain the block will not render.
+
+- **Icon Block section updated (7.1 SVG API)**: Replaced the old "patterns only"
+  note with the new `wp_register_icon_collection()` / `wp_register_icon()` API,
+  including `fill="currentColor"` guidance. Kept the pattern fallback for
+  pre-7.1 environments.
+
+- **Client-side media processing guidance added**: Use `wp_get_attachment_image()`
+  for `srcset`/`sizes` correctness; audit `add_image_size()` for duplicates
+  (7.1 deduplication); HEIC original preserved in `$metadata['original']`.
+
+- **Testing Checklist expanded**: Added iframed editor, responsive breakpoint
+  toggle, new Tabs/Playlist block test, HEIC/AVIF upload test.
+
+- **Theme Checklist updated**: Added viewport/breakpoints, `editor_style`
+  requirement, new blocks, SVG Icon API, image output function, image size audit.
+
+Sources:
+- https://wordpress.org/news/2026/08/mary-lou/ (WP 7.1 "Mary Lou" release; 2026-08-19)
+- https://make.wordpress.org/core/2026/ (dev notes: responsive editing, viewport
+  schema, iframed editor enforcement, client-side media; 2026-08)
+- https://schemas.wp.org/wp/7.1/theme.json (official theme.json v3 schema; 2026)
+- https://developer.wordpress.org/themes/global-settings-and-styles/ (theme.json
+  settings.viewport reference; verified 2026-11)
+- https://wordpress.org/documentation/article/core-blocks/ (core/tabs, core/playlist
+  block structure; verified 2026-11)
+- https://make.wordpress.org/core/2026/ (client-side media: wasm-vips, HEIC/AVIF,
+  wp_generate_attachment_metadata 'update' context; 2026-08)
+
+Follow-ups:
+- `wordpress-woocommerce-development`: last remaining WordPress skill at run #1
+  (2026-09-27). Needs 7.1.4 banner; "Verify collaboration features" in Phase 8
+  testing checklist should be removed or qualified; DataViews 7.1 changes relevant
+  to order management screens (40px controls, css prop deprecated); client-side
+  media relevant to product images.

@@ -8,35 +8,50 @@ description: >-
 
 ## Overview
 
-Specialized workflow for building WooCommerce stores including setup, payment gateway integration, shipping configuration, custom product types, store optimization, and WordPress 7.0 enhancements.
+Specialized workflow for building WooCommerce stores including setup, payment gateway integration, shipping configuration, custom product types, store optimization, and WordPress 7.0 and 7.1 enhancements.
 
-## WordPress 7.0 + WooCommerce Features
+> **Current WordPress release:** 7.1.4 "Mary Lou" (August 19, 2026). Minimum PHP 7.4 for WP; WooCommerce now requires PHP 8.0+ and recommends PHP 8.3+. Always run the latest WooCommerce release on the latest stable WordPress.
 
-1. **AI Integration**
+## WordPress 7.0 + 7.1 + WooCommerce Features
+
+1. **AI Integration** _(7.0+)_
    - Auto-generate product descriptions
    - AI-powered customer service responses
    - Product summary generation
    - Marketing copy assistance
 
-2. **DataViews for Orders**
-   - Modern order management interfaces
+2. **DataViews for Orders** _(7.0+, refined in 7.1)_
+   - Modern order management interfaces replacing legacy WP_List_Table
    - Enhanced filtering and sorting
    - Activity layout for order history
+   - **7.1:** Form controls standardised to 40px height; `__next40pxDefaultSize` is a no-op; `css` prop on layout components no longer works — use `className`/`style` instead
+   - Custom column hooks into the legacy order list table may break; use WooCommerce's CRUD API and DataViews extension points
 
-3. **Real-Time Collaboration**
-   - Did NOT ship in WordPress 7.0 (removed May 8, 2026); collaborative order
-     editing is not available in core
-   - When the feature plugin lands, team notes and live inventory updates become
-     feasible — keep order data REST-exposed until then
+3. **Real-Time Collaboration — did NOT ship in 7.0 or 7.1**
+   - Removed from 7.0 on May 8, 2026 (race conditions, server load, fuzz bugs); deferred again from 7.1
+   - Collaborative order editing is not available in core — do not test for or depend on it
+   - Keep order data REST-exposed (`show_in_rest => true` on custom meta) as a forward-compatible practice
 
-4. **Admin Refresh**
+4. **Admin Refresh** _(7.0+)_
    - Consistent WooCommerce admin styling
    - View transitions between screens
 
-5. **Abilities API**
+5. **Abilities API** _(7.0+, expanded in 7.1)_
    - AI-powered order processing
    - Automated inventory management
    - Smart shipping recommendations
+
+6. **High-Performance Order Storage (HPOS)** — default since WooCommerce 8.2
+   - Orders stored in dedicated tables (`wp_wc_orders`, `wp_wc_order_addresses`, `wp_wc_order_operational_data`, `wp_wc_orders_meta`) instead of `wp_posts`/`wp_postmeta`
+   - **Never use** `get_posts(['post_type' => 'shop_order'])` or direct `wp_postmeta` queries — they are broken on HPOS stores
+   - Use WooCommerce CRUD: `wc_get_order()`, `WC_Order_Query`, `$order->get_meta()`, `$order->update_meta_data()`
+   - Compatibility mode (dual-write sync) is a migration aid, not a permanent state — check via `wc_get_container()->get(Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::class)->custom_orders_table_usage_is_enabled()`
+   - Manage with `wp wc hpos` WP-CLI commands
+
+7. **Client-Side Media Processing for Product Images** _(7.1)_
+   - HEIC/AVIF/WebP product photos processed in-browser (WebAssembly) before upload — eliminates server timeout/memory errors on bulk product imports
+   - Custom `upload_mimes` filters must not block files before client-side processing intercepts; test against the WP 7.1 upload flow
+   - Frontend vendor upload forms must gracefully handle the browser-fallback path for older/mobile browsers
 
 ## When to Use This Workflow
 
@@ -46,7 +61,8 @@ Use this workflow when:
 - Configuring shipping methods
 - Creating custom product types
 - Building subscription products
-- Implementing AI-powered features (WP 7.0)
+- Implementing AI-powered features (WP 7.0+)
+- Migrating to or working with HPOS (High-Performance Order Storage)
 
 ## Workflow Phases
 
@@ -60,15 +76,20 @@ Use this workflow when:
 5. Configure currency
 6. Test with WordPress 7.0 admin
 
-#### WordPress 7.0 + WooCommerce Setup
+#### WordPress 7.1 + WooCommerce Setup
 ```php
-// Minimum requirements for WP 7.0 + WooCommerce: PHP 7.4 (8.3+ recommended).
-// Real-Time Collaboration did not ship in 7.0 - there is no core collaboration
-// constant to define in wp-config.php.
+// Minimum requirements for WP 7.1.4 + WooCommerce:
+// PHP 8.0+ (WooCommerce requirement); PHP 8.3+ recommended for production.
+// Real-Time Collaboration did not ship in 7.0 or 7.1 — no collaboration
+// constant exists in wp-config.php.
 
 // AI features are enabled by installing a provider plugin
 // Install OpenAI, Anthropic, or Gemini connector from WordPress.org
 // Then configure via Settings > Connectors in admin panel
+
+// HPOS is enabled by default on new WooCommerce installations (since WC 8.2).
+// Verify HPOS status: WooCommerce > Settings > Advanced > Features > Order Storage
+// Never query orders via get_posts(['post_type' => 'shop_order']) on HPOS stores.
 ```
 
 ### Phase 2: Product Configuration
@@ -481,11 +502,42 @@ function woocommerce_process_order_handler($input) {
 4. Configure CDN
 5. Set up lazy loading
 
-#### WordPress 7.0 Performance
-- Client-side media processing
+#### WordPress 7.1 Performance
+- **Client-side media processing (7.1):** HEIC/AVIF product photos processed in-browser before upload — eliminates server timeout/memory failures on large product photo imports. Use `wp_get_attachment_image()` for all product image output so `srcset`/`sizes` are generated correctly for all formats.
+- Custom `upload_mimes` filters must not block files before the browser-side pipeline intercepts them; test against the WP 7.1 upload flow.
 - Font Library enabled
 - Responsive grid block
 - View transitions for perceived performance
+
+#### HPOS-Compatible Order Queries
+HPOS is the default for all new WooCommerce stores (since WC 8.2). Direct `wp_posts` / `wp_postmeta` queries for orders are **broken on HPOS stores** — use the WooCommerce CRUD API exclusively:
+
+```php
+// ✅ HPOS-safe: use WooCommerce CRUD
+$order = wc_get_order($order_id);
+if ($order) {
+    $status   = $order->get_status();
+    $customer = $order->get_billing_email();
+    $custom   = $order->get_meta('_my_custom_field', true);
+    $order->update_meta_data('_my_custom_field', $value);
+    $order->save();
+}
+
+// ✅ HPOS-safe: WC_Order_Query (respects HPOS and legacy modes)
+$orders = wc_get_orders([
+    'status'       => 'processing',
+    'limit'        => 20,
+    'meta_key'     => '_risk_score',
+    'meta_compare' => '>=',
+    'meta_value'   => 5,
+]);
+
+// ❌ BROKEN on HPOS stores — never use:
+// get_posts(['post_type' => 'shop_order', ...]);
+// $wpdb->get_results("SELECT * FROM wp_postmeta WHERE meta_key='_order_total'");
+```
+
+**Compatibility mode** (dual-write sync between HPOS and `wp_posts`) is a migration aid — not a permanent solution. Verify your custom order queries pass with compatibility mode **disabled** before shipping.
 
 #### Query Performance & Coding Standards (`wc_get_products`)
 - When passing `'exclude'` to `wc_get_products()`, annotate the array key to prevent false positives from VIPCS (`WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude`):
@@ -507,11 +559,13 @@ $products = wc_get_products([
 4. Check mobile experience
 5. Performance testing
 
-#### WordPress 7.0 Testing
+#### WordPress 7.1 Testing
 - Test with new admin interface
 - Verify AI features work
-- Test DataViews for orders
-- Verify collaboration features
+- Test DataViews for orders (note: `__next40pxDefaultSize` is a no-op; `css` prop on layout components removed — use `className`/`style`)
+- **Do not test for collaboration features** — Real-Time Collaboration did not ship in 7.0 or 7.1; there is nothing to verify
+- Verify HPOS-compatible order queries: run with compatibility mode disabled and confirm no `wp_posts`/`wp_postmeta` order queries remain
+- Test product image uploads with HEIC/AVIF files; verify correct `srcset` output
 
 #### AI-Powered Store Testing
 Test AI features as you would any integration: stub the AI client in tests, assert on
@@ -546,7 +600,7 @@ Manual QA checklist for AI features:
 - [ ] Model errors/timeouts degrade to the deterministic path
 - [ ] No checkout, payment, or order status is decided by model output alone
 
-## WooCommerce + WordPress 7.0 AI Use Cases
+## WooCommerce + WordPress 7.0/7.1 AI Use Cases
 
 1. **Product Descriptions**
    - Auto-generate from product attributes

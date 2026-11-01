@@ -255,7 +255,7 @@ plugin-name/
 - [ ] Time to First Byte < 200ms
 - [ ] Largest Contentful Paint < 2.5s
 - [ ] Cumulative Layout Shift < 0.1
-- [ ] First Input Delay < 100ms
+- [ ] Interaction to Next Paint (INP) < 200ms  _(FID was retired as a Core Web Vital in March 2024; INP is the current responsiveness metric)_
 
 ### Phase 6: Security Hardening
 
@@ -343,8 +343,12 @@ register_post_meta('book', 'isbn', [
 ```php
 add_action('rest_api_init', function() {
     register_rest_route('myplugin/v1', '/books', [
-        'methods' => 'GET',
-        'callback' => 'get_books',
+        'methods'             => 'GET',
+        'callback'            => 'get_books',
+        // '__return_true' is acceptable ONLY for genuinely public, read-only data.
+        // For anything that writes state or reads private data, replace with a
+        // current_user_can() check. Never use '__return_true' on POST/PUT/DELETE
+        // routes or routes that expose user-specific or sensitive data.
         'permission_callback' => '__return_true',
     ]);
 });
