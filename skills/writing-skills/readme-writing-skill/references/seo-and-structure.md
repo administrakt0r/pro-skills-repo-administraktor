@@ -8,7 +8,7 @@ GitHub auto-generates an anchor id for every Markdown heading. To link to it fro
 
 1. Take the heading text.
 2. Lowercase it.
-3. Strip anything that isn't a letter, number, space, hyphen, or underscore (drop `.`, `,`, `!`, `?`, `:`, `(`, `)`, `` ` ``, `'`, `/`, `&`, emoji, etc.).
+3. Strip anything that isn't a letter, number, space, hyphen, underscore, or **Unicode character** (drop `.`, `,`, `!`, `?`, `:`, `(`, `)`, `` ` ``, `'`, `/`, `&`, etc.). **Emoji are preserved, not stripped** — `## Quick Start 🚀` → `#quick-start-🚀`. See the rule of thumb below before using emoji in linked headers.
 4. Replace each space with a single hyphen `-`.
 5. If the resulting slug is already used by an earlier heading on the page, GitHub appends `-1`, `-2`, `-3`... for the 2nd, 3rd, 4th occurrence. **Avoid this entirely by making every heading unique** — don't rely on the numbered-suffix behavior, since it's easy to miscount and it looks unprofessional if it desyncs.
 
@@ -24,7 +24,7 @@ GitHub auto-generates an anchor id for every Markdown heading. To link to it fro
 | `## Configuration & Options` | `#configuration--options` (the `&` is dropped, leaving a double space collapsed... in practice GitHub renders this as `#configuration--options` — when a heading contains punctuation like `&`, prefer to just avoid it and write `## Configuration and Options` → `#configuration-and-options`, which is unambiguous) |
 | `## API Reference` | `#api-reference` |
 
-**Rule of thumb: prefer plain alphanumeric headings with spaces only.** Avoid `&`, `/`, `:`, parentheses, and emoji *inside heading text* if you plan to link to it — emoji in particular render fine visually but complicate the slug (GitHub strips them, but the exact stripping can vary with emoji shortcode vs. unicode input, so it's the single most common source of a broken TOC link). If you want an emoji for visual flavor, it's safest to skip decorating linked headers.
+**Rule of thumb: prefer plain alphanumeric headings with spaces only.** Avoid `&`, `/`, `:`, parentheses, and emoji *inside heading text* if you plan to link to it. Emoji in particular are the most common source of broken TOC links — **GitHub preserves emoji in anchor slugs** (it does not strip them), including any invisible variation-selector bytes (e.g. `U+FE0F`) silently appended by OS emoji pickers. A heading `## Quick Start 🚀` generates `#quick-start-🚀`, and a TOC link written as `(#quick-start)` will not match if the emoji is present. When the emoji was typed via an OS picker, the hidden variation-selector byte makes the mismatch invisible in a text editor and only detectable when the link fails on GitHub. For safety, keep linked headers emoji-free; add emoji to sub-headings or prose instead.
 
 ## 2. Table of Contents construction
 
@@ -41,7 +41,7 @@ Base pattern: `https://img.shields.io/{provider}/{metric}/{owner}/{repo}` or `ht
 Common ones:
 
 - **License**: `https://img.shields.io/github/license/{owner}/{repo}` → link to `LICENSE`
-- **CI/build status**: `https://img.shields.io/github/actions/workflow/status/{owner}/{repo}/{workflow-file}.yml` → link to the Actions tab
+- **CI/build status**: `https://img.shields.io/github/actions/workflow/status/{owner}/{repo}/{workflow-file}.yml?branch=main` → link to the Actions tab. **Always include `?branch=<default-branch>`** (e.g. `main` or `master`); omitting it causes shields.io to report an ambiguous or incorrect status when multiple branches exist. Use the actual `.yml` filename, not the `name:` display string inside the YAML.
 - **npm version**: `https://img.shields.io/npm/v/{package}` → link to the npm page
 - **PyPI version**: `https://img.shields.io/pypi/v/{package}` → link to the PyPI page
 - **Downloads (npm)**: `https://img.shields.io/npm/dm/{package}` (monthly) or `/dt/` (total)

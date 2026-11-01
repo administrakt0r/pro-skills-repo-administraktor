@@ -20,7 +20,7 @@ Every template below uses real Markdown that renders correctly on GitHub. Replac
 {{One-sentence description, keyword-forward}}
 
 [![License](https://img.shields.io/github/license/{{owner}}/{{repo}})](LICENSE)
-[![Build](https://img.shields.io/github/actions/workflow/status/{{owner}}/{{repo}}/{{workflow}}.yml)]({{ci_url}})
+[![Build](https://img.shields.io/github/actions/workflow/status/{{owner}}/{{repo}}/{{workflow}}.yml?branch=main)]({{ci_url}})
 [![Version](https://img.shields.io/{{registry}}/v/{{package}})]({{package_url}})
 [![Downloads](https://img.shields.io/{{registry}}/dm/{{package}})]({{package_url}})
 
@@ -159,7 +159,7 @@ We'd love your help — see [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
 {{2-3 sentence description: what it is, what problem it solves, what makes it different}}
 
 [![License](https://img.shields.io/github/license/{{owner}}/{{repo}})](LICENSE)
-[![Build](https://img.shields.io/github/actions/workflow/status/{{owner}}/{{repo}}/{{workflow}}.yml)]({{ci_url}})
+[![Build](https://img.shields.io/github/actions/workflow/status/{{owner}}/{{repo}}/{{workflow}}.yml?branch=main)]({{ci_url}})
 [![Version](https://img.shields.io/{{registry}}/v/{{package}})]({{package_url}})
 [![Docs](https://img.shields.io/badge/docs-latest-blue)]({{docs_url}})
 

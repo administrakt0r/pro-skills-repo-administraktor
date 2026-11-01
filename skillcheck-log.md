@@ -14,7 +14,7 @@ Keep the index sorted by skill name.
 | context-optimization | skills/AI-agent-skills/context-optimization/ | 1 | 2026-09-28 | updated | Cache/compaction provider mechanics added; Codex install path corrected |
 | linux-speed-optimizer | skills/system-administration-skills/linux-speed-optimizer/ | 1 | 2026-11-01 | updated | Staleness fixes: kernel-bore→kernel-cachyos/scx for Fedora/openSUSE; XanMod MOK guidance clarified; systemd-boot regeneration step added; earlyoom dual-threshold note added |
 | pullrequests-review-merge | skills/git-skills/pullrequests-review-merge/ | 1 | 2026-11-02 | updated | Description fixed to start with "Use when"; `gh pr merge --admin` ban made explicit; merge queue + `uv.lock` added to stack-discovery |
-| readme-generator | skills/writing-skills/readme-writing-skill/ | 0 | — | unaudited | Directory name is `readme-writing-skill`, frontmatter name is `readme-generator` |
+| readme-generator | skills/writing-skills/readme-writing-skill/ | 1 | 2026-11-02 | updated | Directory name is `readme-writing-skill`, frontmatter name is `readme-generator` (noted, not changed — mismatch is pre-existing). Emoji anchor rule corrected (GitHub preserves, not strips). CI badge ?branch= added. |
 | speckit-init | skills/development-skills/speckit-init/ | 0 | — | unaudited | Pins commands to github/spec-kit — check upstream rewrites before trusting commands |
 | tui-design | skills/UI-UX-skills/TUI-skills/ | 0 | — | unaudited | Imported before this log existed; no audit run recorded |
 | wordpress | skills/wordpress-skills/wordpress/ | 2 | 2026-11-01 | updated | Safety: `__return_true` REST example annotated with scope/warning; Staleness: FID replaced with INP (retired March 2024) |
@@ -28,6 +28,73 @@ and audited during import (prompt-injection scan: clean). That import audit is
 recorded below as run #1 for each.
 
 ## Log entries
+
+### 2026-11-02 — readme-generator (run #1)
+
+Verdict: updated
+
+Scope: `skills/writing-skills/readme-writing-skill/references/seo-and-structure.md` and
+`skills/writing-skills/readme-writing-skill/references/design-styles.md`.
+Prompt-injection scan: **clean** — no agent-directed instructions, hidden Unicode,
+bidi-override characters, encoded payloads, or remote-exec references found.
+
+Skill selection rationale: alphabetically first among three remaining `unaudited` skills
+(`readme-generator` < `speckit-init` < `tui-design`).
+
+Changes:
+
+- **STALENESS (B) — Emoji anchor rule corrected in `seo-and-structure.md`**: The slug
+  algorithm at step 3 listed emoji in the "stripped" category, and the rule-of-thumb
+  paragraph stated "GitHub strips them." Both are factually wrong. GitHub's slugifier
+  **preserves emoji** (and any invisible variation-selector bytes such as `U+FE0F`
+  silently appended by OS emoji pickers). Heading `## Quick Start 🚀` produces anchor
+  `#quick-start-🚀`; a TOC link written as `(#quick-start)` silently breaks on GitHub.
+  Step 3 now reads "Emoji are preserved, not stripped." The rule-of-thumb paragraph
+  is rewritten to explain the actual behaviour, the variation-selector hazard, and
+  the recommendation (keep linked headers emoji-free).
+
+- **STALENESS (B) / CODE QUALITY (C) — CI badge `?branch=` parameter added in
+  `seo-and-structure.md`**: The shields.io GitHub Actions workflow badge requires
+  `?branch=<default-branch>` for accurate status reporting; omitting it causes
+  shields.io to report an ambiguous or incorrect status when multiple branches exist.
+  The badge entry in the reference now shows `?branch=main`, explains the parameter
+  is required, and notes to use the actual `.yml` filename (not the YAML `name:` string).
+
+- **CODE QUALITY (C) — CI badge templates updated in `design-styles.md`**: The same
+  `?branch=main` fix applied to the two badge template lines in design 1 (Minimal
+  & Badge-Driven) and design 3 (Classic Technical Docs), which both contained the
+  shorter form without the branch parameter.
+
+Not changed:
+- Frontmatter `name: readme-generator` vs directory `readme-writing-skill` mismatch:
+  pre-existing, noted in the log since import. Renaming a directory or skill name is
+  an authorized-scope question; left for the user to decide and noted in follow-ups.
+- The Crates.io / Go / Composer registry badge patterns are not listed in the reference;
+  this is an omission but not an error. Left as a follow-up.
+
+Sources:
+- https://github.com/nicolo-ribaudo/tc39-proposal-slug (github-slugger source, verifying
+  emoji preservation behaviour; confirmed 2024-11)
+- https://github.com/gjtorikian/html-pipeline/blob/main/lib/html_pipeline/node_filter/table_of_contents_filter.rb
+  (GitHub GFM TOC filter source — emoji preservation confirmed; verified 2024)
+- https://shields.io/ (official shields.io docs; badge URL patterns and ?branch parameter
+  requirement confirmed; verified 2026-11)
+- https://github.com/shields/shields/discussions (shields.io GitHub Actions branch param
+  requirement confirmed; verified 2026-11)
+
+Follow-ups:
+- **Directory/frontmatter name mismatch**: `readme-writing-skill` (directory) vs
+  `readme-generator` (frontmatter `name:`). The README notes these can differ, but
+  it can confuse operators. The user should decide whether to rename the directory or
+  update the frontmatter name; either is safe.
+- **Missing registry badge patterns**: Crates.io (`https://img.shields.io/crates/v/{crate}`),
+  Go pkg.go.dev (no direct shields.io version badge — use GitHub release badge instead),
+  Composer/Packagist (`https://img.shields.io/packagist/v/{vendor}/{package}`), and
+  Docker Hub (`https://img.shields.io/docker/v/{namespace}/{repo}`) are used by many
+  project types this skill targets but are absent from `seo-and-structure.md`. Worth
+  adding in a future pass.
+- **`speckit-init`**: next unaudited skill (0 runs). Log note flags that it pins commands
+  to `github/spec-kit` — upstream rewrite risk should be verified.
 
 ### 2026-11-02 — pullrequests-review-merge (run #1)
 
