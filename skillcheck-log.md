@@ -12,7 +12,7 @@ Keep the index sorted by skill name.
 |-------|------|------|--------------|--------|-------|
 | coding-guidelines-generator | skills/development-skills/coding-guidelines-generator/ | 1 | 2026-10-18 | updated | Rebuilt as modular skill; addressed Codex review feedback (26 fixtures, byte-for-byte upsert) |
 | context-optimization | skills/AI-agent-skills/context-optimization/ | 1 | 2026-09-28 | updated | Cache/compaction provider mechanics added; Codex install path corrected |
-| linux-speed-optimizer | skills/system-administration-skills/linux-speed-optimizer/ | 0 | — | unaudited | Contains version-sensitive tuning commands; re-verify against current kernel/systemd docs |
+| linux-speed-optimizer | skills/system-administration-skills/linux-speed-optimizer/ | 1 | 2026-11-01 | updated | Staleness fixes: kernel-bore→kernel-cachyos/scx for Fedora/openSUSE; XanMod MOK guidance clarified; systemd-boot regeneration step added; earlyoom dual-threshold note added |
 | pullrequests-review-merge | skills/git-skills/pullrequests-review-merge/ | 0 | — | unaudited | Not in this log until 2026-09-28 (added in commit 6417ad4 after the last run); frontmatter name is `pr-review-merge` |
 | readme-generator | skills/writing-skills/readme-writing-skill/ | 0 | — | unaudited | Directory name is `readme-writing-skill`, frontmatter name is `readme-generator` |
 | speckit-init | skills/development-skills/speckit-init/ | 0 | — | unaudited | Pins commands to github/spec-kit — check upstream rewrites before trusting commands |
@@ -185,3 +185,74 @@ Sources:
 Follow-ups:
 - Re-verify Python 3.14 features when shipped.
 
+
+### 2026-11-01 — linux-speed-optimizer (run #1)
+
+Verdict: updated
+
+Scope: `skills/system-administration-skills/linux-speed-optimizer/` only.
+Prompt-injection scan: **clean** — no agent-directed instructions, hidden
+Unicode, encoded payloads, or remote-exec references found.
+
+Changes:
+
+- **§4.7 (Custom kernel) — openSUSE**: Removed stale `kernel-bore` entry.
+  `kernel-bore` is not available in official openSUSE repos. Modern openSUSE
+  Tumbleweed (kernel ≥ 6.12) ships `sched_ext` natively; the correct
+  recommendation is `sudo zypper install scx`. No custom kernel needed.
+- **§4.7 (Custom kernel) — Fedora**: Clarified from vague "kernel-bore or
+  XanMod COPR" to `kernel-cachyos` via CachyOS COPR
+  (`bieszczaders/kernel-cachyos`; BORE scheduler), with XanMod COPR as an
+  alternative. This matches the actual active community kernel project.
+- **§4.7 (Custom kernel) — XanMod Secure Boot**: Tightened wording from
+  "Setup Mode or MOK enrollment" to explicitly state XanMod kernels are unsigned
+  by default and require `mokutil --import` self-signing workflow; noted that
+  `bootctl status` is an alternative check when `mokutil` is unavailable.
+- **§4.7 (Custom kernel) — Arch**: Clarified that `linux-zen` is in the
+  official `extra` repo (not AUR) and does not require unofficial repositories.
+- **§8 (Distribution matrix) — Custom kernel row**: Updated openSUSE from
+  `kernel-bore` to `scx (sched_ext, kernel ≥ 6.12)`; updated Fedora from
+  `kernel-bore` to `kernel-cachyos (BORE)`.
+- **§8 (systemd-boot footnote)**: Expanded from a single-line mention of
+  `/etc/kernel/cmdline` to include the mandatory regeneration step
+  (`sudo kernel-install add-all` for UKI layouts, or editing the BLS entry
+  file directly), and added a post-reboot verification via `cat /proc/cmdline`.
+  Without this step, edits to `/etc/kernel/cmdline` have no effect.
+- **§4.3 (earlyoom)**: Added a note documenting the `-m PERCENT[,KILL_PERCENT]`
+  dual-threshold syntax available since earlyoom v1.8+, with a version-check
+  reminder. The existing `-m 5 -s 5` example was preserved (correct syntax);
+  only the explanatory prose was extended.
+
+Sources:
+- https://github.com/systemd/zram-generator (zram-generator config reference;
+  current as of 2026-11)
+- https://fedoraproject.org/wiki/Changes/EnableSystemdOomd (systemd-oomd Fedora
+  default since F34; confirmed still the default 2026)
+- https://copr.fedorainfracloud.org/coprs/bieszczaders/kernel-cachyos/
+  (CachyOS COPR for Fedora; includes BORE scheduler; verified 2026-11)
+- https://xanmod.org (XanMod APT repo, key path, package names; verified 2026-11)
+- https://linuxcapable.com/install-xanmod-kernel-on-ubuntu/ (XanMod Secure Boot
+  unsigned status, MOK workflow; 2025/2026)
+- https://wiki.archlinux.org/title/Unified_kernel_image (kernel-install / UKI /
+  `/etc/kernel/cmdline`; Arch wiki, 2026)
+- https://fedoraproject.org/wiki/Changes/systemd_boot (Fedora systemd-boot /
+  UKI; kernel-install add-all; 2026)
+- https://opensuse.org / OBS search for `scx` (openSUSE Tumbleweed sched_ext
+  package; verified 2026-11)
+- https://github.com/rfjakob/earlyoom (earlyoom README; v1.8+ `-m PERCENT[,KILL]`
+  syntax; 2025/2026)
+- https://kernel.org/doc/html/latest/admin-guide/sysctl/vm.html
+  (`vm.page-cluster` still present in kernel 6.x; verified 2026-11)
+
+Follow-ups:
+- The `linux-speed-optimizer` skill is **not listed** in the repo root
+  `README.md` skills table. The table currently shows 35 skills but omits this
+  one. Fix when the README is next updated or on a dedicated README-refresh run.
+- Re-verify `sched_ext` / `scx` package name stability on openSUSE Tumbleweed
+  at next run (the `scx` package was relatively new as of 2026-11).
+- earlyoom default thresholds (currently `-m 5`) are quite aggressive (triggers
+  at 5% free memory); consider annotating with a recommended range (10–15%) in
+  a future pass without changing the example syntax.
+- `pullrequests-review-merge`, `readme-generator`, `speckit-init`, and
+  `tui-design` remain 0-run `unaudited`; next run picks by tie-break
+  (alphabetically: `pullrequests-review-merge`).

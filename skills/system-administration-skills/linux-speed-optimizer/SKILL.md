@@ -187,6 +187,9 @@ grep -q -- '-m 5' /etc/default/earlyoom || sudo sed -i \
   's|^EARLYOOM_ARGS=.*|EARLYOOM_ARGS="-m 5 -s 5"|' /etc/default/earlyoom
 # restart only if the file actually changed; verify: ps -ef | grep earlyoom
 ```
+earlyoom v1.8+ accepts `-m PERCENT[,KILL_PERCENT]` (e.g. `-m 10,5` for SIGTERM
+at 10% free, SIGKILL at 5%) and `-s` for swap. Fedora/Ubuntu ship v1.8+; check
+`earlyoom --version` before relying on the dual-threshold form.
 Debian/Ubuntu: package `earlyoom`. Fedora: `systemd-oomd` is default (prefer
 it there). Arch: `earlyoom` in AUR/extra.
 
@@ -234,11 +237,19 @@ GNOME/KDE settings — never delete configs, only toggle the running state.
 
 - Determine CPU microarchitecture level: `lscpu | grep -o 'avx2'` present ⇒
   x86-64-v3 is safe; only AVX ⇒ v2; none ⇒ v1. Never install v3 on v2 hardware.
-- Debian/Ubuntu: XanMod (`https://xanmod.org`, repo key + `linux-xanmod-x64vX`)
-  or Liquorix. Fedora: kernel-bore or XanMod COPR. Arch: `linux-xanmod` or
-  `linux-zen` (official, easier). 
-- Check Secure Boot first: `mokutil --sb-state`. Unsigned kernels require
-  Setup Mode or MOK enrollment.
+- Debian/Ubuntu: XanMod (`https://xanmod.org`, APT repo key +
+  `linux-xanmod-x64vX` or `linux-xanmod-lts-x64vX`) or Liquorix.
+  Fedora: `kernel-cachyos` via CachyOS COPR (`bieszczaders/kernel-cachyos`;
+  includes BORE scheduler) or XanMod COPR. Arch: `linux-xanmod` or
+  `linux-zen` (official `extra` repo, no AUR needed).
+  openSUSE: kernel-bore is not in official repos; for improved desktop
+  responsiveness use `sched_ext` instead:
+  `sudo zypper install scx` (Tumbleweed, kernel ≥ 6.12) — no custom kernel
+  required.
+- Check Secure Boot first: `mokutil --sb-state` (or `bootctl status` if
+  `mokutil` is unavailable). XanMod kernels are unsigned; Secure Boot
+  requires either disabling it or self-signing with a MOK key and enrolling
+  via `mokutil --import`.
 - Guard: `dpkg -s linux-xanmod-x64v3` / `pacman -Q linux-xanmod` — skip if
   already installed.
 - NEVER remove the distro kernel — it stays as the GRUB fallback and revert
@@ -293,11 +304,15 @@ convergent: state unchanged ⇒ no action.
 | zram | zram-tools (`/etc/default/zramswap`) | zram-generator | zram-generator | zram-generator |
 | OOM guard | `earlyoom` | `systemd-oomd` (built-in) | `earlyoom` | `earlyoom` |
 | GRUB regen | `update-grub` | `grub2-mkconfig -o /boot/grub2/grub.cfg` | `grub-mkconfig -o /boot/grub/grub.cfg` | `update-bootloader` |
-| Custom kernel | XanMod/Liquorix repos | XanMod COPR / `kernel-bore` | `linux-zen`/`linux-xanmod` | `kernel-bore` |
+| Custom kernel | XanMod/Liquorix repos | XanMod COPR / `kernel-cachyos` (BORE) | `linux-zen`/`linux-xanmod` | `scx` (`sched_ext`, kernel ≥ 6.12) |
 | Check pkgs | `apt-get check` | `dnf check` | `pacman -Qk` | `zypper verify` |
 
 If the bootloader is systemd-boot (EFI), kernel params go in
-`/etc/kernel/cmdline` instead of GRUB.
+`/etc/kernel/cmdline` instead of GRUB. After editing that file you must
+regenerate boot entries: `sudo kernel-install add-all` (Fedora/Arch with UKIs)
+or update the individual `.conf` entry under `/efi/loader/entries/` for
+traditional BLS layouts. Verify the running kernel has picked up the param
+after reboot with `cat /proc/cmdline`.
 
 ## 9. What NOT to do
 
